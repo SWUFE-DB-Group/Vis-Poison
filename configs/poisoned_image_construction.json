@@ -1,0 +1,25 @@
+{
+  "ollama": {
+    "host": "http://localhost:11434",
+    "model": "gemma4:31b",
+    "timeout": 120,
+    "planner_temperature": 0.5,
+    "verifier_temperature": 0.0,
+    "keep_alive": "0s"
+  },
+  "editor": {
+    "model_name": "flux2-9b",
+    "model_path": "/home/ubuntu/liangrj/.models/black-forest-labs/FLUX.2-klein-9B",
+    "num_inference_steps": 4,
+    "guidance_scale": 1.0,
+    "seed": 42,
+    "release_after_edit": true
+  },
+  "run": {
+    "max_rounds": 1
+  },
+  "outputs": {
+    "poison_image_dir": "outputs/poisoned_image_construction/images",
+    "report_path": "outputs/poisoned_image_construction/report.json"
+  }
+}
