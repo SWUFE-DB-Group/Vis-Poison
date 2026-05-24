@@ -7,7 +7,8 @@ from urllib.parse import urlparse
 
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
-DEFAULT_CONFIG_PATH = ROOT_DIR / "configs" / "generate_caption.json"
+DEFAULT_CAPTION_CONFIG_PATH = ROOT_DIR / "configs" / "generate_caption.json"
+DEFAULT_API_CONFIG_PATH = ROOT_DIR / "configs" / "openai_models.json"
 
 
 def load_json(path: str | Path) -> Any:
@@ -20,7 +21,7 @@ def save_json(path: str | Path, data: Any) -> None:
     output_path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
-def load_config(path: str | Path = DEFAULT_CONFIG_PATH) -> dict[str, Any]:
+def load_config(path: str | Path) -> dict[str, Any]:
     config = load_json(path)
     if not isinstance(config, dict):
         raise TypeError(f"{path}: expected a JSON object")
@@ -50,12 +51,12 @@ def normalize_image_input(value: str | Path) -> str:
     return image_path_to_data_url(text)
 
 
-def resolve_model_tag(model_name: str | None, config: dict[str, Any]) -> str:
-    models = config.get("models", {})
+def resolve_model_tag(model_name: str | None, api_config: dict[str, Any]) -> str:
+    models = api_config.get("models", {})
     if not isinstance(models, dict):
-        raise TypeError("config.models must be a JSON object")
+        raise TypeError("api config models must be a JSON object")
 
-    requested = model_name or config.get("default_model_name")
+    requested = model_name or api_config.get("default_model_name")
     if not requested:
         raise ValueError("Missing model name. Set default_model_name or pass --model.")
 
@@ -82,28 +83,30 @@ def extract_response_text(response: Any) -> str:
     return str(content or "").strip()
 
 
-def build_model_kwargs(model_tag: str, config: dict[str, Any]) -> dict[str, Any]:
+def find_prefix_config(model_tag: str, mapping: dict[str, Any]) -> Any:
     lower_name = model_tag.lower()
-    options = config.get("model_options", {})
+    for prefix, value in mapping.items():
+        if lower_name.startswith(str(prefix).lower()):
+            return value
+    return None
+
+
+def build_model_kwargs(model_tag: str, caption_config: dict[str, Any]) -> dict[str, Any]:
+    options = caption_config.get("model_options", {})
     kwargs: dict[str, Any] = {"model": model_tag}
 
-    if lower_name.startswith("qwen"):
-        kwargs["temperature"] = options.get("temperature", 0)
-        kwargs["extra_body"] = {"enable_thinking": bool(options.get("qwen_enable_thinking", False))}
-    elif lower_name.startswith("kimi-"):
-        kwargs["extra_body"] = {"thinking": {"type": "disabled"}}
-    elif lower_name.startswith("claude-"):
-        kwargs["temperature"] = options.get("temperature", 0)
-        kwargs["extra_body"] = {"thinking": {"type": "disabled"}}
-    elif lower_name.startswith("gpt-"):
-        kwargs["temperature"] = options.get("temperature", 0)
-        kwargs["reasoning_effort"] = options.get("gpt_reasoning_effort", "none")
-    elif lower_name.startswith("glm-"):
-        kwargs["temperature"] = options.get("temperature", 0)
-        kwargs["extra_body"] = {"thinking": {"type": "disabled"}}
-    elif lower_name.startswith("llama"):
-        kwargs["temperature"] = options.get("temperature", 0)
-    else:
-        kwargs["temperature"] = options.get("temperature", 0)
+    if "temperature" in options:
+        kwargs["temperature"] = options["temperature"]
+
+    if options.get("disable_thinking", True):
+        prefix_bodies = options.get("thinking_disabled_extra_body_by_prefix", {})
+        extra_body = find_prefix_config(model_tag, prefix_bodies) if isinstance(prefix_bodies, dict) else None
+        if isinstance(extra_body, dict) and extra_body:
+            kwargs["extra_body"] = extra_body
+
+        reasoning_prefixes = options.get("reasoning_effort_by_prefix", {})
+        reasoning_effort = find_prefix_config(model_tag, reasoning_prefixes) if isinstance(reasoning_prefixes, dict) else None
+        if reasoning_effort:
+            kwargs["reasoning_effort"] = reasoning_effort
 
     return kwargs

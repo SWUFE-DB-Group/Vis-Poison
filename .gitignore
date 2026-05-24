@@ -48,4 +48,6 @@ checkpoints/
 *.tmp.jpg
 *.tmp.jpeg
 # Local API credentials
-configs/generate_caption.json
+
+# Local API credentials and model routing
+configs/openai_models.json

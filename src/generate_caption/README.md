@@ -4,43 +4,27 @@ Synchronous OpenAI-compatible image caption generation.
 
 ## Config
 
-Create this local config file:
+Caption prompt and generation options are committed in:
 
 ```bash
 configs/generate_caption.json
 ```
 
-This file is ignored by git because it contains API credentials. Required format:
+API credentials and model-name mappings are local settings in:
 
-```json
-{
-  "openai": {
-    "base_url": "https://api.example.com/v1",
-    "api_key": "YOUR_API_KEY",
-    "timeout": 300
-  },
-  "default_model_name": "Qwen3.5-397B-A17B",
-  "models": {
-    "Claude Sonnet 4.6": "claude-sonnet-4-6",
-    "GPT-5.4": "gpt-5.4",
-    "Qwen3.6-Plus": "qwen3.6-plus",
-    "Llama 4 Maverick": "llama-4-maverick",
-    "Kimi-K2.6": "kimi-k2.6",
-    "Qwen3.5-397B-A17B": "qwen3.5-397b-a17b",
-    "Llama 4 Scout": "llama-4-scout",
-    "Qwen3.6-35B-A3B": "qwen3.6-35b-a3b",
-    "Qwen3.6-27B": "qwen3.6-27b"
-  },
-  "prompt": "You are an assistant tasked with summarizing images for retrieval. These summaries will be embedded and used to retrieve the raw image. Give a concise summary of the image that is well optimized for retrieval.",
-  "model_options": {
-    "temperature": 0,
-    "qwen_enable_thinking": false,
-    "gpt_reasoning_effort": "none"
-  }
-}
+```bash
+configs/openai_models.json
 ```
 
-`models` maps display names used by `--model` to API model tags. You may pass either the display name or the API tag.
+The required `openai_models.json` format is documented in the project root README. That file is ignored by git and must not be committed.
+
+Thinking is disabled through `configs/generate_caption.json` using provider-specific settings:
+
+- Qwen: `enable_thinking = false`
+- Kimi, Claude, GLM: `thinking.type = disabled`
+- GPT: `reasoning_effort = none`
+
+Additional providers can be handled by adding prefixes under `thinking_disabled_extra_body_by_prefix` or `reasoning_effort_by_prefix`.
 
 ## Test Images
 
