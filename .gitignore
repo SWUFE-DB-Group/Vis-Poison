@@ -1,0 +1,51 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Build artifacts
+build/
+dist/
+wheels/
+*.egg-info/
+
+# Virtual environments and uv cache
+.venv/
+.uv-cache/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Runtime outputs
+outputs/
+logs/
+*.log
+
+# Large local model/checkpoint artifacts
+models/
+checkpoints/
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+*.bin
+
+# Generated media artifacts
+*.tmp.png
+*.tmp.jpg
+*.tmp.jpeg
+# Local API credentials
+configs/generate_caption.json
