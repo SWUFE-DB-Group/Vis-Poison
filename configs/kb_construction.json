@@ -1,0 +1,48 @@
+{
+  "datasets": {
+    "COCO": {
+      "prefix": "coco_random",
+      "data_dir": "dataset/COCO",
+      "images_dir": "dataset/COCO/imgs",
+      "output_dir": "dataset/COCO"
+    },
+    "Flickr30k": {
+      "prefix": "flickr30k_random",
+      "data_dir": "dataset/Flickr30k",
+      "images_dir": "dataset/Flickr30k/imgs",
+      "output_dir": "dataset/Flickr30k"
+    }
+  },
+  "kb_sizes": [
+    "1k",
+    "10k",
+    "30k"
+  ],
+  "clip": {
+    "model_name": "openai/clip-vit-base-patch16",
+    "batch_size": 64,
+    "metric": "inner_product_on_l2_normalized_embeddings"
+  },
+  "siglip": {
+    "model_name": "google/siglip-large-patch16-256",
+    "local_files_only": true,
+    "batch_size": 32,
+    "metric": "inner_product_on_raw_siglip_embeddings"
+  },
+  "qwen": {
+    "model_name": "Qwen/Qwen3-VL-Embedding-2B",
+    "model_slug": "qwen3_vl_embedding_2b_local",
+    "model_name_or_path": "Qwen/Qwen3-VL-Embedding-2B",
+    "batch_size": 4,
+    "instruction": "Represent the user's input.",
+    "metric": "inner_product_on_l2_normalized_qwen3_vl_embeddings"
+  },
+  "text_embedding_3_large": {
+    "model_name": "text-embedding-3-large",
+    "text_key": "caption",
+    "batch_size": 128,
+    "concurrency": 32,
+    "max_retries": 6,
+    "metric": "inner_product_on_l2_normalized_embeddings"
+  }
+}
