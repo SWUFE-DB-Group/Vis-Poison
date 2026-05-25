@@ -12,6 +12,7 @@ dependencies = [
     "ollama",
     "openai>=2.32.0",
     "pillow==12.2.0",
+    "protobuf>=5.29.3",
     "qwen-vl-utils>=0.0.14",
     "safetensors==0.7.0",
     "sentencepiece==0.2.1",

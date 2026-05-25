@@ -1,0 +1,61 @@
+{
+  "input": {
+    "webqa_dataset": "dataset/webqa_final_category_difficulty_sample_70.json",
+    "poison_report": "outputs/poisoned_image_construction/report.json",
+    "poison_image_dir": "outputs/poisoned_image_construction/images"
+  },
+  "run": {
+    "datasets": [
+      "COCO",
+      "Flickr30k"
+    ],
+    "sizes": [
+      "1k",
+      "10k",
+      "30k"
+    ],
+    "top_k": 3,
+    "output_dir": "outputs/retrieval_p2"
+  },
+  "datasets": {
+    "COCO": {
+      "base_json_dir": "dataset/COCO",
+      "base_prefix": "coco_random"
+    },
+    "Flickr30k": {
+      "base_json_dir": "dataset/Flickr30k",
+      "base_prefix": "flickr30k_random"
+    }
+  },
+  "backends": {
+    "clip": {
+      "model_name": "openai/clip-vit-base-patch16",
+      "model_name_or_path": "/home/ubuntu/liangrj/.models/openai/clip-vit-base-patch16/57c216476eefef5ab752ec549e440a49ae4ae5f3",
+      "local_files_only": true,
+      "batch_size": 32,
+      "faiss_subdir": "clip",
+      "faiss_suffix": "openai_clip_vit_base_patch16",
+      "normalize_base_embeddings": true
+    },
+    "siglip": {
+      "model_name": "google/siglip-large-patch16-256",
+      "model_name_or_path": "/home/ubuntu/liangrj/.models/google/siglip-large-patch16-256/d0da9f876e7d66b4e250cd2450c3ba2ce735e447",
+      "local_files_only": true,
+      "batch_size": 32,
+      "faiss_subdir": "siglip",
+      "faiss_suffix": "google_siglip_large_patch16_256",
+      "normalize_base_embeddings": false
+    },
+    "qwen": {
+      "model_name": "Qwen/Qwen3-VL-Embedding-2B",
+      "model_name_or_path": "/home/ubuntu/liangrj/.models/Qwen/Qwen3-VL-Embedding-2B/9f2f7e710d6d81056aa5c0a4f04764fec6bb7bda",
+      "batch_size": 8,
+      "faiss_subdir": "qwen",
+      "faiss_suffix": "qwen3_vl_embedding_2b_local",
+      "normalize_base_embeddings": true,
+      "document_instruction": "Represent the user's input.",
+      "query_instruction": "Retrieve the most relevant image for the question."
+    }
+  }
+}
+
