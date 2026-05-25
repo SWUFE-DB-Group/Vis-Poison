@@ -51,7 +51,7 @@ API credentials and model-name mappings are local settings in:
 configs/openai_models.json
 ```
 
-The required `openai_models.json` format is documented in the project root README. That file is ignored by git and must not be committed.
+The required `openai_models.json` format is documented in the project root README. That file is ignored by git and must not be committed. Add each display name you want to call under `models`, for example `GPT-5.4 -> your-provider-model-tag`.
 
 `disable_thinking` is implemented with provider-specific request parameters:
 
@@ -73,19 +73,19 @@ src/generate_caption/test_data/color-p.png
 Local clean image test:
 
 ```bash
-uv run python src/generate_caption/generate_caption.py --image src/generate_caption/test_data/color-c.jpg --model "GPT-5.4"
+uv run src/generate_caption/generate_caption.py --image src/generate_caption/test_data/color-c.jpg --model GPT-5.4
 ```
 
 Local poison image test:
 
 ```bash
-uv run python src/generate_caption/generate_caption.py --image src/generate_caption/test_data/color-p.png --model "GPT-5.4"
+uv run src/generate_caption/generate_caption.py --image src/generate_caption/test_data/color-p.png --model GPT-5.4
 ```
 
 Remote image URL test:
 
 ```bash
-uv run python src/generate_caption/generate_caption.py --image "https://example.com/image.jpg" --model "GPT-5.4"
+uv run src/generate_caption/generate_caption.py --image https://example.com/image.jpg --model GPT-5.4
 ```
 
 Output is printed to stdout:

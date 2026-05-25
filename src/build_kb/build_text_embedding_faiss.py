@@ -30,7 +30,19 @@ def load_openai_config(path: Path) -> dict[str, Any]:
     data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict) or "openai" not in data:
         raise ValueError(f"Missing `openai` section in {path}")
-    return data["openai"]
+    return data
+
+
+def resolve_model_tag(model_name: str, api_config: dict[str, Any]) -> str:
+    models = api_config.get("models", {})
+    if not isinstance(models, dict):
+        raise TypeError("api config models must be a JSON object")
+
+    resolved = models.get(model_name, model_name)
+    resolved = str(resolved).strip()
+    if not resolved:
+        raise ValueError(f"Empty model tag for {model_name!r}")
+    return resolved
 
 
 async def embed_batches(client: AsyncOpenAI, model: str, texts: list[str], batch_size: int, concurrency: int) -> np.ndarray:
@@ -91,12 +103,12 @@ async def amain() -> None:
     method_cfg = cfg["text_embedding_3_large"]
     api_cfg = load_openai_config(args.openai_config)
     client = AsyncOpenAI(
-        base_url=api_cfg.get("base_url"),
-        api_key=api_cfg["api_key"],
-        timeout=api_cfg.get("timeout", 300),
+        base_url=api_cfg["openai"].get("base_url"),
+        api_key=api_cfg["openai"]["api_key"],
+        timeout=api_cfg["openai"].get("timeout", 300),
         max_retries=int(method_cfg["max_retries"]),
     )
-    model_name = method_cfg["model_name"]
+    model_name = resolve_model_tag(str(method_cfg["model_name"]), api_cfg)
     inputs = args.inputs or default_inputs(cfg, args.dataset, args.sizes)
     for input_path in inputs:
         await process_one(input_path, args, cfg, client, model_name)

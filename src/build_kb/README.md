@@ -2,7 +2,7 @@
 
 Build FAISS KB indexes for COCO and Flickr30k caption samples.
 
-Configuration lives in `configs/kb_construction.json`. OpenAI-compatible credentials for `text-embedding-3-large` stay in the git-ignored `configs/openai_models.json`.
+Configuration lives in `configs/kb_construction.json`. The closed-source `text-embedding-3-large` backend is called through the git-ignored `configs/openai_models.json`.
 
 ## Data Layout
 
@@ -34,6 +34,14 @@ uv run src/build_kb/build_text_embedding_faiss.py --dataset COCO
 ```
 
 Replace `COCO` with `Flickr30k` for Flickr30k. Outputs are written under `dataset/<DATASET>/<method>/`.
+
+Before running `build_text_embedding_faiss.py`, make sure `configs/openai_models.json` contains a `models` mapping for:
+
+```json
+{
+  "text-embedding-3-large": "your-provider-embedding-tag"
+}
+```
 
 The methods match the original setup:
 

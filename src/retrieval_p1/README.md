@@ -2,44 +2,70 @@
 
 Evaluate whether poisoned-image captions retrieve above clean KB captions.
 
-## Data
+## Prerequisites
 
-Caption samples are read from:
+You need these inputs before running P1:
 
-```bash
+```text
 dataset/webqa_final_category_difficulty_sample_70.json
 ```
 
-KB files are stored under:
+This file must already contain the `captions` field for the nine caption models.
 
-```bash
+Use `src/generate_caption/` first if the captions are not ready yet.
+
+You also need `configs/openai_models.json` with a `models` mapping for:
+
+```json
+{
+  "text-embedding-3-large": "your-provider-embedding-tag"
+}
+```
+
+You also need the prebuilt text KB files under:
+
+```text
 dataset/retrieval/
 ```
 
-The evaluator expects COCO and Flickr30k caption JSON files plus prebuilt `text_embedding_3_large` FAISS indexes and manifests.
+P1 reads:
+
+- `dataset/retrieval/COCO/*_captions.json`
+- `dataset/retrieval/COCO/text_embedding_3_large/*.faiss`
+- `dataset/retrieval/Flickr30k/*_captions.json`
+- `dataset/retrieval/Flickr30k/text_embedding_3_large/*.faiss`
+
+The repository does not commit these KB files by default. Prepare them first, then run the scripts below.
+
+## Scripts
+
+- `src/retrieval_p1/run_retrieval.py`: run retrieval evaluation with `text-embedding-3-large`
+- `src/retrieval_p1/stats_retrieval.py`: summarize finished result files
 
 ## Run
 
 Evaluate all nine caption models:
 
 ```bash
-uv run src/retrieval_p1/evaluate_caption_retrieval.py
+uv run src/retrieval_p1/run_retrieval.py
 ```
 
 Evaluate one model:
 
 ```bash
-uv run src/retrieval_p1/evaluate_caption_retrieval.py --model "GPT-5.4"
+uv run src/retrieval_p1/run_retrieval.py --model "GPT-5.4"
 ```
 
 Print stats:
 
 ```bash
-uv run src/retrieval_p1/stats_caption_retrieval.py
+uv run src/retrieval_p1/stats_retrieval.py
 ```
 
 Results are written to:
 
-```bash
+```text
 outputs/retrieval_p1/
 ```
+
+Each caption model produces one result JSON plus a `retrieval_summary.json`.

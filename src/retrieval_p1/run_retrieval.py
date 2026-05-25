@@ -12,7 +12,7 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 DEFAULT_DATASET_PATH = ROOT_DIR / "dataset" / "webqa_final_category_difficulty_sample_70.json"
 DEFAULT_API_CONFIG_PATH = ROOT_DIR / "configs" / "openai_models.json"
 OUTPUT_DIR = ROOT_DIR / "outputs" / "retrieval_p1"
-EMBED_MODEL = "text-embedding-3-large"
+EMBED_MODEL_NAME = "text-embedding-3-large"
 EMBED_BATCH_SIZE = 64
 
 CAPTION_MODELS = [
@@ -52,12 +52,7 @@ def save_json(path: Path, data: Any) -> None:
 
 
 def model_slug(model_name: str) -> str:
-    return (
-        model_name.lower()
-        .replace(" ", "-")
-        .replace(".", "-")
-        .replace(":", "-")
-    )
+    return model_name.lower().replace(" ", "-").replace(".", "-").replace(":", "-")
 
 
 def create_client(api_config_path: Path) -> OpenAI:
@@ -68,6 +63,18 @@ def create_client(api_config_path: Path) -> OpenAI:
         api_key=api["api_key"],
         timeout=api.get("timeout", 300),
     )
+
+
+def resolve_model_tag(api_config_path: Path, model_name: str) -> str:
+    config = load_json(api_config_path)
+    models = config.get("models", {})
+    if not isinstance(models, dict):
+        raise TypeError("api config models must be a JSON object")
+    resolved = models.get(model_name, model_name)
+    resolved = str(resolved).strip()
+    if not resolved:
+        raise ValueError(f"Empty model tag for {model_name!r}")
+    return resolved
 
 
 def format_rate(numerator: int, denominator: int) -> float:
@@ -86,11 +93,11 @@ def get_kb_paths(group_name: str, kb_size: str) -> tuple[Path, Path, Path]:
     return data_path, faiss_path, manifest_path
 
 
-def embed_texts(client: OpenAI, texts: list[str]) -> np.ndarray:
+def embed_texts(client: OpenAI, model_tag: str, texts: list[str]) -> np.ndarray:
     vectors: list[list[float]] = []
     for start in range(0, len(texts), EMBED_BATCH_SIZE):
         batch = texts[start : start + EMBED_BATCH_SIZE]
-        response = client.embeddings.create(model=EMBED_MODEL, input=batch)
+        response = client.embeddings.create(model=model_tag, input=batch)
         vectors.extend(item.embedding for item in response.data)
     array = np.asarray(vectors, dtype=np.float32)
     faiss.normalize_L2(array)
@@ -185,7 +192,7 @@ def evaluate_single_kb(
         "faiss_path": str(faiss_path),
         "manifest_path": str(manifest_path),
         "metric": manifest.get("metric", ""),
-        "embed_model": EMBED_MODEL,
+        "embed_model_name": EMBED_MODEL_NAME,
         "num_usable_samples": usable_count,
         "top1_hits": top1_hits,
         "top1_rate": format_rate(top1_hits, usable_count),
@@ -199,6 +206,7 @@ def evaluate_caption_model(
     caption_model: str,
     dataset: list[dict[str, Any]],
     client: OpenAI,
+    embed_model_tag: str,
 ) -> dict[str, Any]:
     caption_rows = build_caption_rows(dataset, caption_model)
     if not caption_rows:
@@ -206,8 +214,8 @@ def evaluate_caption_model(
 
     questions = [str(row.get("question", "")).strip() for row in caption_rows]
     captions = [str(row.get("caption", "")).strip() for row in caption_rows]
-    question_vectors = embed_texts(client, questions)
-    caption_vectors = embed_texts(client, captions)
+    question_vectors = embed_texts(client, embed_model_tag, questions)
+    caption_vectors = embed_texts(client, embed_model_tag, captions)
 
     results_by_group: dict[str, dict[str, Any]] = {}
     for group_name in KB_GROUPS:
@@ -233,7 +241,8 @@ def evaluate_caption_model(
     return {
         "caption_model": caption_model,
         "caption_source": str(DEFAULT_DATASET_PATH),
-        "embed_model": EMBED_MODEL,
+        "embed_model_name": EMBED_MODEL_NAME,
+        "embed_model_tag": embed_model_tag,
         "num_total_dataset_records": len(dataset),
         "num_usable_caption_records": len(caption_rows),
         "skipped_caption_records": len(dataset) - len(caption_rows),
@@ -242,7 +251,7 @@ def evaluate_caption_model(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Evaluate caption retrieval for P1 captions.")
+    parser = argparse.ArgumentParser(description="Run P1 caption retrieval evaluation.")
     parser.add_argument("--dataset", default=str(DEFAULT_DATASET_PATH))
     parser.add_argument("--api-config", default=str(DEFAULT_API_CONFIG_PATH))
     parser.add_argument("--output-dir", default=str(OUTPUT_DIR))
@@ -256,7 +265,9 @@ def main() -> None:
 
     selected_models = args.model or CAPTION_MODELS
     output_dir = Path(args.output_dir)
-    client = create_client(Path(args.api_config))
+    api_config_path = Path(args.api_config)
+    client = create_client(api_config_path)
+    embed_model_tag = resolve_model_tag(api_config_path, EMBED_MODEL_NAME)
     summaries: list[dict[str, Any]] = []
 
     for caption_model in selected_models:
@@ -265,7 +276,7 @@ def main() -> None:
             print(f"Skip existing retrieval result for {caption_model}: {output_path}")
             result = load_json(output_path)
         else:
-            result = evaluate_caption_model(caption_model, dataset, client)
+            result = evaluate_caption_model(caption_model, dataset, client, embed_model_tag)
             save_json(output_path, result)
             print(f"Saved retrieval result to: {output_path}")
 

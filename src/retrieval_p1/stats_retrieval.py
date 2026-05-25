@@ -27,12 +27,7 @@ def load_json(path: Path) -> Any:
 
 
 def model_slug(model_name: str) -> str:
-    return (
-        model_name.lower()
-        .replace(" ", "-")
-        .replace(".", "-")
-        .replace(":", "-")
-    )
+    return model_name.lower().replace(" ", "-").replace(".", "-").replace(":", "-")
 
 
 def pct(value: float | None) -> str:
@@ -87,7 +82,7 @@ def extract_metrics(data: dict[str, Any], dataset_name: str, kb_size: str) -> st
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Print P1 caption retrieval stats for the nine caption models.")
+    parser = argparse.ArgumentParser(description="Print P1 retrieval stats for the nine caption models.")
     parser.add_argument("--dataset", default=str(DEFAULT_DATASET_PATH))
     parser.add_argument("--result-dir", default=str(DEFAULT_RESULT_DIR))
     args = parser.parse_args()
@@ -122,3 +117,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
