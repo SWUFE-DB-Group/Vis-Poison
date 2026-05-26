@@ -6,7 +6,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 BASE="${BASE:-$REPO_ROOT/dataset/trufor_workspace}"
 out_root="$BASE/trufor_outputs"
 log_root="$BASE/trufor_logs"
-groups=(poison clip_white_data_2 siglip_white_data_2)
+groups=(poison)
 
 mkdir -p "$out_root" "$log_root"
 for group in "${groups[@]}"; do
@@ -17,7 +17,10 @@ for group in "${groups[@]}"; do
   mkdir -p "$dst"
   {
     echo "[$(date -Iseconds)] start $group"
-    docker run --rm -v "$src:/data:ro" -v "$dst:/data_out" trufor:server -gpu -1 -in /data -out /data_out
+    docker run --rm \
+      -v "$src:/data:ro" \
+      -v "$dst:/data_out" \
+      trufor:server -gpu -1 -in /data -out /data_out
     echo "[$(date -Iseconds)] done $group"
   } >"$log" 2>&1 && echo ok >"$status" || echo failed >"$status"
 done

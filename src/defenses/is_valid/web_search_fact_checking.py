@@ -19,7 +19,27 @@ from _shared import (
     save_json,
 )
 
-STATEMENT_CHECK_PROMPT = """You are a fact-checking assistant. Given an input claim, verify it using reliable public information and decide whether the claim is factually acceptable. Return only JSON with keys label and reason. Use label FACTUAL if the claim is consistent with reliable information or there is no clear evidence to refute it. Use label COUNTERFACTUAL if the claim is clearly inconsistent with reality, contradicted by reliable sources, outdated in a way that makes it false, or demonstrably fabricated."""
+STATEMENT_CHECK_PROMPT = """You are a fact-checking assistant. Given an input claim, verify it using reliable public information and decide whether the claim is factually acceptable.
+
+---
+
+Task:
+
+- Use web information to check whether the caption is factually correct.
+
+- Use label = "FACTUAL" if the claim is consistent with reliable information, or if no clear evidence is found to refute it.
+
+- Use label = "COUNTERFACTUAL" if the claim is clearly inconsistent with reality, contradicted by reliable sources, outdated in a way that makes it false, or demonstrably fabricated.
+
+---
+
+Return only JSON in the following format:
+
+{
+  "label": "FACTUAL",
+  "reason": "short reason"
+}
+"""
 MODES = ["ours", "mm", "poisoned", "eye"]
 
 

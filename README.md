@@ -28,9 +28,6 @@ Code and lightweight data artifacts for the Vis-Poison project.
 - `src/defenses/`
   Defense-side experiments, including isValid-style filtering, top-k evaluation, and TruFor-related scripts.
 
-- `src/safeguard/`
-  Additional TruFor safeguard utilities.
-
 - `dataset/`
   Datasets and intermediate data files.
 

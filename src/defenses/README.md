@@ -14,7 +14,7 @@ This directory collects the code used for the defense-side experiments in the pa
   Scripts for the top-k retrieval defense setting, including top-3 generation, a unified validator, and summary statistics.
 
 - `trufor/`
-  Minimal wrappers used for the TruFor image-forensics safeguard.
+  TruFor image-forensics scripts for the defense experiments.
 
 ## Configuration
 

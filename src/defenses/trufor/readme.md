@@ -1,35 +1,40 @@
 # TruFor
 
-This folder contains the minimal scripts used to run TruFor as an image-forensics safeguard in the defense experiments.
+This folder contains the scripts used to run TruFor as an image-forensics defense baseline.
 
-We do not vendor the full TruFor repository or model weights here. The scripts assume that TruFor has already been packaged as a Docker image named `trufor:server`.
+## Files
 
-## Input layout
+- `run_imgs_180_trufor.sh`: run TruFor on the prepared image groups
+- `summarize_imgs_180_trufor.py`: summarize `.npz` outputs into CSV tables
 
-The default workspace is resolved from the repository root:
+We do not vendor the TruFor repository or model weights here. The scripts assume
+that TruFor is already available as a Docker image named `trufor:server`.
+
+## Input Layout
+
+The default workspace is:
 
 ```text
 dataset/trufor_workspace
 ```
 
-Expected files and folders:
+Expected layout:
 
 ```text
 dataset/trufor_workspace/
   sample_180.json
   poison/
-  clip_white_data_2/
-  siglip_white_data_2/
   trufor_outputs/
   trufor_logs/
 ```
 
-Each image folder contains 180 poisoned images. `sample_180.json` stores the metadata, including the edit category under `counterfactual_edit.category`.
+`sample_180.json` stores the sample metadata, including
+`counterfactual_edit.category`.
 
 ## Run TruFor
 
 ```bash
-bash run_imgs_180_trufor.sh
+bash src/defenses/trufor/run_imgs_180_trufor.sh
 ```
 
 Outputs are written to:
@@ -45,7 +50,13 @@ We use `score > 0.5` as the binary detection rule.
 ## Summarize Results
 
 ```bash
-docker run --rm --entrypoint python \
-  -v dataset/trufor_workspace:/work \
-  trufor:server /work/summarize_imgs_180_trufor.py
+uv run src/defenses/trufor/summarize_imgs_180_trufor.py
+```
+
+Summary files are written to:
+
+```text
+dataset/trufor_workspace/trufor_results/trufor_all_scores.csv
+dataset/trufor_workspace/trufor_results/trufor_group_summary.csv
+dataset/trufor_workspace/trufor_results/trufor_category_summary.csv
 ```
