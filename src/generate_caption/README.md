@@ -16,11 +16,17 @@ Caption task config is committed in:
 configs/generate_caption.json
 ```
 
+This file only stores request options such as temperature and thinking control.
+The caption prompt itself is defined in code:
+
+```bash
+src/generate_caption/_shared.py
+```
+
 Required format:
 
 ```json
 {
-  "prompt": "You are an assistant tasked with summarizing images for retrieval. These summaries will be embedded and used to retrieve the raw image. Give a concise summary of the image that is well optimized for retrieval.",
   "model_options": {
     "temperature": 0,
     "disable_thinking": true,

@@ -11,7 +11,7 @@ This directory collects the code used for the defense-side experiments in the pa
   Scripts for the isValid-style pipeline, including separate construction scripts for each group, web-search fact-checking, jailbreak filtering, and summary statistics.
 
 - `topk/`
-  Scripts for the top-k retrieval defense setting, including top-3 generation, validation, and summary statistics.
+  Scripts for the top-k retrieval defense setting, including top-3 generation, a unified validator, and summary statistics.
 
 - `trufor/`
   Minimal wrappers used for the TruFor image-forensics safeguard.

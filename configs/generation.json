@@ -1,0 +1,19 @@
+{
+  "input_path": "dataset/webqa_final_category_difficulty_sample_70.json",
+  "output_dir": "results/generation",
+  "default_difficulty": "hard",
+  "max_concurrency": 10,
+  "models": [
+    "Claude Sonnet 4.6",
+    "GPT-5.4",
+    "Qwen3.6-Plus",
+    "Llama 4 Maverick",
+    "Kimi-K2.6",
+    "Qwen3.5-397B-A17B"
+  ],
+  "model_options": {
+    "temperature": 0,
+    "disable_thinking": true,
+    "gpt_reasoning_effort": "none"
+  }
+}

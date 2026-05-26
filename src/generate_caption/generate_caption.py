@@ -7,6 +7,7 @@ from openai import OpenAI
 from _shared import (
     DEFAULT_API_CONFIG_PATH,
     DEFAULT_CAPTION_CONFIG_PATH,
+    CAPTION_PROMPT,
     build_model_kwargs,
     extract_response_text,
     load_config,
@@ -34,7 +35,6 @@ def generate_caption(
     api_config = load_config(api_config_path)
     model_tag = resolve_model_tag(model_name, api_config)
     image_url = normalize_image_input(image)
-    prompt = caption_config["prompt"]
     client = create_client(api_config)
 
     response = client.chat.completions.create(
@@ -42,7 +42,7 @@ def generate_caption(
             {
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": prompt},
+                    {"type": "text", "text": CAPTION_PROMPT},
                     {"type": "image_url", "image_url": {"url": image_url}},
                 ],
             }

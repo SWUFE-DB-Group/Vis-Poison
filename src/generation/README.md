@@ -5,6 +5,7 @@ API-based generation scripts for the three settings from `exp1.2-generation`:
 - `q_only.py`
 - `q_clean.py`
 - `q_poison.py`
+- `answer_validator.py`
 - `_shared.py`
 
 All scripts use the local git-ignored `configs/openai_models.json` and only support these model names:
@@ -20,6 +21,12 @@ Committed task config:
 
 ```text
 configs/generation.json
+```
+
+The generation prompts themselves are defined in:
+
+```text
+src/generation/_shared.py
 ```
 
 Local API config:
@@ -53,6 +60,12 @@ results/generation/<difficulty>/
 
 Each run writes one JSON file per model and mode.
 
+`answer_validator.py` validates whether a model answer semantically aligns with a reference answer.
+It uses one prompt for both settings:
+
+- correctness checking: reference answer = clean / gold answer
+- misleading checking: reference answer = attacker target answer
+
 ## Commands
 
 Question only:
@@ -84,6 +97,37 @@ Small smoke test:
 ```bash
 uv run src/generation/q_clean.py --difficulty hard --model GPT-5.4 --max-items 1 --overwrite
 ```
+
+Validate one answer pair:
+
+```bash
+uv run src/generation/answer_validator.py --question "What color is the car?" --reference-answer "red" --model-answer "The car is bright red."
+```
+
+Validate a result file against clean answers:
+
+```bash
+uv run src/generation/answer_validator.py --input results/generation/hard/gpt-5-4-q_only.json --reference-fields correct_answer,answer,A --positive-label correct --negative-label wrong
+```
+
+Validate a result file against attacker target answers:
+
+```bash
+uv run src/generation/answer_validator.py --input results/generation/hard/gpt-5-4-q_poison.json --reference-fields wrong_answer,attacker_answer,adv_answer --positive-label misled --negative-label not_misled
+```
+
+Batch mode accepts either:
+
+- a JSON list of records
+- a generation result object with a top-level `results` list
+
+Each record should contain:
+
+- `question`
+- one reference-answer field from `--reference-fields`
+- one model-answer field from `--model-answer-fields` (default prefers `model_answer`)
+
+Dot paths such as `nested.answer` are supported. When the input is a generation result object, the validator preserves the wrapper metadata and only rewrites the `results` list.
 
 The evaluation script for these outputs lives in:
 

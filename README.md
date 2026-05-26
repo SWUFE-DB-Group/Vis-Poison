@@ -1,6 +1,6 @@
 # Vis-Poison: Poisoning Visual Knowledge in Multimodal Retrieval-Augmented Generation
 
-> A visual knowledge poisoning attack that injects malicious payloads directly into image content, together with a knowledge-aware evaluation framework for measuring how poisoned and clean visual evidence affect multimodal RAG generation.
+> Code and lightweight data artifacts for a visual knowledge poisoning attack on multimodal retrieval-augmented generation, together with a knowledge-aware evaluation framework.
 
 ## Repository Structure
 
@@ -34,8 +34,6 @@
 
 ## Models and Knowledge Bases
 
-We evaluate Vis-Poison with the following setup:
-
 - **Retrieval models:** `text-embedding-3-large`, `clip-vit-base-patch16`, `siglip-large-patch16-256`, and `Qwen3-VL-Embedding-2B`.
   `text-embedding-3-large` is used for caption-based retrieval.
 
@@ -47,7 +45,6 @@ We evaluate Vis-Poison with the following setup:
 
 ## Knowledge-Aware Evaluation
 
-We report generation-stage results under the knowledge-aware evaluation setting.
 For each generation model, we compare three input conditions:
 
 - `Q`: the model answers from the query alone.
@@ -61,11 +58,9 @@ We report six metrics: `Q ACC`, `Q+Clean ACC`, `ASR-G`, `POR`, `CHR`, and `PIR`.
 - `CHR`: clean help rate when the model cannot answer correctly from `Q` alone.
 - `PIR`: poison induction rate when the model cannot answer correctly from `Q` alone.
 
-Each model is evaluated on 630 questions per split. Across six generation models, this gives 3,780 model-question evaluations for each split.
+Each model is evaluated on 630 questions per split. Across six generation models, this gives 3,780 model-question evaluations per split.
 
 ### Easy Split
-
-The Easy split contains questions that models can more often answer from the query alone. Clean images further improve accuracy, while poisoned images still achieve strong attack performance.
 
 | Model             | Q ACC | Q+Clean ACC | ASR-G | POR | CHR | PIR |
 | ----------------- | ----: | ----------: | ----: | --: | --: | --: |
@@ -78,8 +73,6 @@ The Easy split contains questions that models can more often answer from the que
 | **Mean**          | 78.1% |       93.4% | 63.3% | 60.6% | 88.6% | 72.5% |
 
 ### Hard Split
-
-The Hard split contains questions that models often fail to answer from the query alone and therefore rely more on retrieved visual evidence. Poisoned images are more effective in this setting.
 
 | Model             | Q ACC | Q+Clean ACC | ASR-G | POR | CHR | PIR |
 | ----------------- | ----: | ----------: | ----: | --: | --: | --: |
@@ -123,7 +116,7 @@ The Hard split contains questions that models often fail to answer from the quer
   - `jailbreak_filtering.py` uses the same OpenAI-compatible API credentials through `configs/openai_models.json`.
 
 - `src/defenses/topk/`
-  - `wrong_answer_validator.py` and `check_q_poison_top3.py` use Ollama by default.
+  - `src/generation/answer_validator.py` and `src/defenses/topk/answer_validator.py` use Ollama by default.
 
 - `src/defenses/trufor/`
   - Uses the external TruFor environment described in `src/defenses/trufor/readme.md`.
@@ -134,4 +127,4 @@ In short:
 - put Ollama model settings in the task-specific config when needed, and run Ollama locally
 - put local model paths in the corresponding committed task config such as `configs/poisoned_image_construction.json`, `configs/kb_construction.json`, and `configs/retrieval_p2.json`
 
-Detailed usage instructions for each component are documented in the corresponding subdirectory README files. Some scripts rely on local model paths or API settings that are intentionally kept outside version control.
+Detailed usage instructions are documented in the corresponding subdirectory README files. Some scripts rely on local model paths or API settings that are intentionally kept outside version control.

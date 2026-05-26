@@ -50,9 +50,26 @@ def to_index(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     }
 
 
+def validator_accepts(row: dict[str, Any]) -> bool:
+    explicit = row.get("validator_is_aligned")
+    if isinstance(explicit, bool):
+        return explicit
+
+    value = row.get("validator_judgement")
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"yes", "true", "1"}:
+            return True
+        if normalized in {"no", "false", "0"}:
+            return False
+    return False
+
+
 def is_correct(row: dict[str, Any]) -> bool:
     return (
-        bool(row.get("validator_judgement", False))
+        validator_accepts(row)
         and str(row.get("validator_label", "")).strip().lower() == "correct"
     )
 
@@ -63,7 +80,7 @@ def is_wrong(row: dict[str, Any]) -> bool:
 
 def is_misled(row: dict[str, Any]) -> bool:
     return (
-        bool(row.get("validator_judgement", False))
+        validator_accepts(row)
         and str(row.get("validator_label", "")).strip().lower() == "misled"
     )
 

@@ -9,6 +9,10 @@ from urllib.parse import urlparse
 ROOT_DIR = Path(__file__).resolve().parents[2]
 DEFAULT_CAPTION_CONFIG_PATH = ROOT_DIR / "configs" / "generate_caption.json"
 DEFAULT_API_CONFIG_PATH = ROOT_DIR / "configs" / "openai_models.json"
+CAPTION_PROMPT = """You are an assistant tasked with summarizing images for retrieval.
+These summaries will be embedded and used to retrieve the raw image.
+
+Give a concise summary of the image that is well optimized for retrieval."""
 
 
 def load_json(path: str | Path) -> Any:
