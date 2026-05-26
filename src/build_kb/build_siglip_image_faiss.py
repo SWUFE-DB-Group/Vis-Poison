@@ -26,7 +26,9 @@ from common import (
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Build SigLIP image FAISS indexes for COCO/Flickr30k KB captions.")
+    parser = argparse.ArgumentParser(
+        description="Build SigLIP image FAISS indexes for COCO/Flickr30k KB captions."
+    )
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH)
     parser.add_argument("--dataset", choices=["COCO", "Flickr30k"], required=True)
     parser.add_argument("--sizes", nargs="+", default=None)
@@ -41,7 +43,12 @@ def to_device(batch: dict[str, torch.Tensor], device: torch.device) -> dict[str,
     return {key: value.to(device) for key, value in batch.items()}
 
 
-def load_batch_images(records: list[dict[str, Any]], images_dir: Path, input_path: Path, dataset_name: str) -> list[Image.Image]:
+def load_batch_images(
+    records: list[dict[str, Any]],
+    images_dir: Path,
+    input_path: Path,
+    dataset_name: str,
+) -> list[Image.Image]:
     images: list[Image.Image] = []
     for record in records:
         image_path = images_dir / image_filename(record, dataset_name)
@@ -76,13 +83,29 @@ def encode_images(
     return np.vstack(vectors)
 
 
-def process_one(input_path: Path, args: argparse.Namespace, cfg: dict[str, Any], model: SiglipModel, processor: AutoProcessor, device: torch.device) -> None:
+def process_one(
+    input_path: Path,
+    args: argparse.Namespace,
+    cfg: dict[str, Any],
+    model: SiglipModel,
+    processor: AutoProcessor,
+    device: torch.device,
+) -> None:
     method_cfg = cfg["siglip"]
     records = load_records(input_path)
     images_dir = args.images_dir or default_images_dir(cfg, args.dataset)
     output_dir = args.output_dir or default_output_dir(cfg, args.dataset, "siglip")
     batch_size = args.batch_size or int(method_cfg["batch_size"])
-    embeddings = encode_images(records, model, processor, device, images_dir, input_path, args.dataset, batch_size)
+    embeddings = encode_images(
+        records,
+        model,
+        processor,
+        device,
+        images_dir,
+        input_path,
+        args.dataset,
+        batch_size,
+    )
     index = build_ip_index(embeddings)
     slug = model_slug(method_cfg["model_name"])
     faiss_path = output_dir / f"{input_path.stem}_{slug}.faiss"
@@ -101,10 +124,21 @@ def process_one(input_path: Path, args: argparse.Namespace, cfg: dict[str, Any],
             "metric": method_cfg["metric"],
             "batch_size": batch_size,
             "image_key": "filename" if args.dataset == "COCO" else "img",
-            "siglip_protocol": "Do not L2-normalize image embeddings; use raw dot product.",
+            "siglip_protocol": (
+                "Do not L2-normalize image embeddings; use raw dot product."
+            ),
         },
     )
-    print(json.dumps({"faiss_path": str(faiss_path), "manifest_path": str(manifest_path), "count": len(records)}, ensure_ascii=False))
+    print(
+        json.dumps(
+            {
+                "faiss_path": str(faiss_path),
+                "manifest_path": str(manifest_path),
+                "count": len(records),
+            },
+            ensure_ascii=False,
+        )
+    )
 
 
 def main() -> None:
@@ -115,7 +149,10 @@ def main() -> None:
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA is required for SigLIP image index construction.")
     device = torch.device("cuda")
-    processor = AutoProcessor.from_pretrained(method_cfg["model_name"], local_files_only=bool(method_cfg["local_files_only"]))
+    processor = AutoProcessor.from_pretrained(
+        method_cfg["model_name"],
+        local_files_only=bool(method_cfg["local_files_only"]),
+    )
     model = SiglipModel.from_pretrained(
         method_cfg["model_name"],
         torch_dtype=torch.float16,

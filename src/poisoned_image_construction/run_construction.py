@@ -13,7 +13,8 @@ except ImportError:
     from verifier import verify_image
 
 
-DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[2] / "configs" / "poisoned_image_construction.json"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_CONFIG_PATH = REPO_ROOT / "configs" / "poisoned_image_construction.json"
 
 
 def load_json(path: Path) -> Any:
@@ -29,6 +30,13 @@ def load_json_if_exists(path: Path, default: Any) -> Any:
 def save_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def resolve_repo_path(path: str | Path) -> Path:
+    path_obj = Path(path)
+    if path_obj.is_absolute():
+        return path_obj
+    return REPO_ROOT / path_obj
 
 
 def get_nested(record: dict[str, Any], dotted_key: str) -> Any:
@@ -50,7 +58,11 @@ def first_present(record: dict[str, Any], keys: list[str]) -> Any:
 
 def normalize_items(data: Any) -> list[tuple[str, dict[str, Any]]]:
     if isinstance(data, dict):
-        return [(str(sample_id), record) for sample_id, record in data.items() if isinstance(record, dict)]
+        return [
+            (str(sample_id), record)
+            for sample_id, record in data.items()
+            if isinstance(record, dict)
+        ]
     if isinstance(data, list):
         items = []
         for index, record in enumerate(data):
@@ -64,11 +76,26 @@ def normalize_items(data: Any) -> list[tuple[str, dict[str, Any]]]:
 
 def resolve_sample(record: dict[str, Any]) -> tuple[str, str, str]:
     question = first_present(record, ["Q", "query", "question"])
-    image_path = first_present(record, ["source_image", "clean_image.path", "image_path"])
-    wrong_answer = first_present(record, ["attacker_answer", "adv_answer", "wrong_answer", "counterfactual_edit.wrong_answer"])
+    image_path = first_present(
+        record,
+        ["source_image", "clean_image.path", "image_path"],
+    )
+    wrong_answer = first_present(
+        record,
+        [
+            "attacker_answer",
+            "adv_answer",
+            "wrong_answer",
+            "counterfactual_edit.wrong_answer",
+        ],
+    )
     missing = [
         name
-        for name, value in [("question", question), ("clean image", image_path), ("attacker answer", wrong_answer)]
+        for name, value in [
+            ("question", question),
+            ("clean image", image_path),
+            ("attacker answer", wrong_answer),
+        ]
         if value in (None, "")
     ]
     if missing:
@@ -76,7 +103,12 @@ def resolve_sample(record: dict[str, Any]) -> tuple[str, str, str]:
     return str(question).strip(), str(image_path), str(wrong_answer).strip()
 
 
-def build_output_record(record: dict[str, Any], status: str, rounds: list[dict[str, Any]], final_image: str | None = None) -> dict[str, Any]:
+def build_output_record(
+    record: dict[str, Any],
+    status: str,
+    rounds: list[dict[str, Any]],
+    final_image: str | None = None,
+) -> dict[str, Any]:
     output = dict(record)
     output["poison_construction"] = {
         "status": status,
@@ -101,7 +133,7 @@ def run_sample(
     max_rounds: int,
 ) -> tuple[str, dict[str, Any]]:
     question, clean_image_path, wrong_answer = resolve_sample(record)
-    output_dir = Path(config["outputs"]["poison_image_dir"])
+    output_dir = resolve_repo_path(config["outputs"]["poison_image_dir"])
     feedback: str | None = None
     rounds: list[dict[str, Any]] = []
 
@@ -134,7 +166,12 @@ def run_sample(
         }
         rounds.append(round_row)
         if verification["decision"] == "accept":
-            return "success", build_output_record(record, "success", rounds, str(candidate_path))
+            return "success", build_output_record(
+                record,
+                "success",
+                rounds,
+                str(candidate_path),
+            )
 
         # Feed verifier feedback back into the next planning round.
         feedback = verification.get("explanation", "")
@@ -143,7 +180,9 @@ def run_sample(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run poisoned image construction from Algorithm 1.")
+    parser = argparse.ArgumentParser(
+        description="Run poisoned image construction from Algorithm 1."
+    )
     parser.add_argument("--input", required=True)
     parser.add_argument("--config", default=str(DEFAULT_CONFIG_PATH))
     parser.add_argument("--max-rounds", type=int, default=None)
@@ -159,7 +198,7 @@ def main() -> None:
         items = items[: args.max_items]
 
     max_rounds = args.max_rounds or int(config["run"].get("max_rounds", 1))
-    report_path = Path(config["outputs"]["report_path"])
+    report_path = resolve_repo_path(config["outputs"]["report_path"])
     report = {} if args.overwrite else load_json_if_exists(report_path, {})
     if not isinstance(report, dict):
         raise TypeError("Existing report file must contain a JSON object")
@@ -171,7 +210,13 @@ def main() -> None:
             continue
 
         try:
-            status, output_record = run_sample(sample_id, record, config, config_path, max_rounds)
+            status, output_record = run_sample(
+                sample_id,
+                record,
+                config,
+                config_path,
+                max_rounds,
+            )
         except Exception as exc:
             status = "failed"
             output_record = build_output_record(

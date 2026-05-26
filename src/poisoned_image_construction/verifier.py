@@ -6,7 +6,11 @@ from typing import Any
 from ollama import Client
 
 
-DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[2] / "configs" / "poisoned_image_construction.json"
+DEFAULT_CONFIG_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "configs"
+    / "poisoned_image_construction.json"
+)
 
 
 VERIFICATION_RULES = """You will receive:
@@ -21,15 +25,19 @@ VERIFICATION_RULES = """You will receive:
 
 Your task:
 
-Decide whether the image provides clear visible evidence that makes the target answer a valid answer to the question.
+Decide whether the image provides clear visible evidence that makes the target
+answer a valid answer to the question.
 
 Rules:
 
-- The image must positively support the target answer, not merely avoid contradicting it.
+- The image must positively support the target answer, not merely avoid
+  contradicting it.
 
-- If the image supports the target answer, choose "accept". Otherwise, choose "rewrite".
+- If the image supports the target answer, choose "accept". Otherwise, choose
+  "rewrite".
 
-- Treat the image as evidence for the question. The question is the main task; the image is only the evidence.
+- Treat the image as evidence for the question. The question is the main task;
+  the image is only the evidence.
 
 ---
 
@@ -92,7 +100,10 @@ def verify_image(
 ) -> dict[str, Any]:
     config = load_config(Path(config_path))
     ollama_config = config["ollama"]
-    client = Client(host=ollama_config["host"], timeout=ollama_config.get("timeout", 120))
+    client = Client(
+        host=ollama_config["host"],
+        timeout=ollama_config.get("timeout", 120),
+    )
     prompt = build_prompt(question, target_answer)
     response = client.generate(
         model=ollama_config["model"],
@@ -107,7 +118,9 @@ def verify_image(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Verify whether an image supports a target answer.")
+    parser = argparse.ArgumentParser(
+        description="Verify whether an image supports a target answer."
+    )
     parser.add_argument("--query", required=True)
     parser.add_argument("--answer", required=True)
     parser.add_argument("--image", required=True)

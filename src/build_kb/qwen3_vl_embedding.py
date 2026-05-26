@@ -8,8 +8,13 @@ import logging
 from PIL import Image
 from urllib.parse import urlparse
 from dataclasses import dataclass
-from typing import Optional, List, Union, Dict, Any
-from transformers.models.qwen3_vl.modeling_qwen3_vl import Qwen3VLPreTrainedModel, Qwen3VLModel, Qwen3VLConfig
+from typing import Any, Dict, List, Optional, Union
+
+from transformers.models.qwen3_vl.modeling_qwen3_vl import (
+    Qwen3VLConfig,
+    Qwen3VLModel,
+    Qwen3VLPreTrainedModel,
+)
 from transformers.models.qwen3_vl.processing_qwen3_vl import Qwen3VLProcessor
 from transformers.modeling_outputs import ModelOutput
 from transformers.processing_utils import Unpack
@@ -116,14 +121,17 @@ class Qwen3VLForEmbedding(Qwen3VLPreTrainedModel):
             attention_mask=attention_mask,
         )
 
-def sample_frames(frames: List[Union[str, Image.Image]], max_segments: int) -> List[Union[str, Image.Image]]:
+def sample_frames(
+    frames: List[Union[str, Image.Image]],
+    max_segments: int,
+) -> List[Union[str, Image.Image]]:
     duration = len(frames)
     if duration <= max_segments:
         return frames
 
     frame_id_array = np.linspace(0, duration - 1, max_segments, dtype=int)
     frame_id_list = frame_id_array.tolist()
-    sampled_frames = [ frames[frame_idx] for frame_idx in frame_id_list ]
+    sampled_frames = [frames[frame_idx] for frame_idx in frame_id_list]
     return sampled_frames
 
 def is_image_path(path: str) -> bool:
@@ -218,13 +226,19 @@ class Qwen3VLEmbedder():
         return final_token_ids
 
     def format_model_input(
-        self, 
+        self,
         text: Optional[Union[List[str], str]] = None,
         image: Optional[Union[List[Union[str, Image.Image]], str, Image.Image]] = None,
-        video: Optional[Union[List[Union[str, List[Union[str, Image.Image]]]], str, List[Union[str, Image.Image]]]] = None,
+        video: Optional[
+            Union[
+                List[Union[str, List[Union[str, Image.Image]]]],
+                str,
+                List[Union[str, Image.Image]],
+            ]
+        ] = None,
         instruction: Optional[str] = None,
         fps: Optional[float] = None,
-        max_frames: Optional[int] = None
+        max_frames: Optional[int] = None,
     ) -> List[Dict]:
 
         # Ensure instruction ends with punctuation
@@ -236,8 +250,13 @@ class Qwen3VLEmbedder():
         # Initialize conversation with system prompts
         content = []
         conversation = [
-            {"role": "system", "content": [{"type": "text", "text": instruction or self.default_instruction}]},
-            {"role": "user", "content": content}
+            {
+                "role": "system",
+                "content": [
+                    {"type": "text", "text": instruction or self.default_instruction}
+                ],
+            },
+            {"role": "user", "content": content},
         ]
 
         # Normalize text input to list
@@ -354,8 +373,15 @@ class Qwen3VLEmbedder():
             videos, video_metadata = None, None
 
         inputs = self.processor(
-            text=text, images=images, videos=videos, video_metadata=video_metadata, truncation=True, 
-            max_length=self.max_length, padding=True, do_resize=False, return_tensors='pt',
+            text=text,
+            images=images,
+            videos=videos,
+            video_metadata=video_metadata,
+            truncation=True,
+            max_length=self.max_length,
+            padding=True,
+            do_resize=False,
+            return_tensors="pt",
             **video_kwargs
         )
         return inputs

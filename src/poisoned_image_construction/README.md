@@ -2,6 +2,14 @@
 
 This folder implements the planner-editor-verifier loop from Algorithm 1.
 
+## Files
+
+- `planner.py`: generate one edit instruction with the planning prompt
+- `editor.py`: run local FLUX.2 Klein image editing
+- `verifier.py`: verify whether the edited image supports the attacker answer
+- `run_construction.py`: run the full multi-round construction loop
+- `test_data/edit_type_showcase/`: local smoke-test samples
+
 ## Config
 
 Default config:
@@ -36,25 +44,25 @@ Run these commands from the project root.
 Planner test:
 
 ```bash
-uv run python src/poisoned_image_construction/planner.py --query "What color are the downspouts of the gutters on the side of the Bull & Stirrup pub, Chester, England?" --wrong-answer "The downspouts of the gutters on the side of the Bull & Stirrup pub are black." --image src/poisoned_image_construction/test_data/edit_type_showcase/color-c.jpg
+uv run src/poisoned_image_construction/planner.py --query "What color are the downspouts of the gutters on the side of the Bull & Stirrup pub, Chester, England?" --wrong-answer "The downspouts of the gutters on the side of the Bull & Stirrup pub are black." --image src/poisoned_image_construction/test_data/edit_type_showcase/color-c.jpg
 ```
 
 Editor test:
 
 ```bash
-uv run python src/poisoned_image_construction/editor.py --image src/poisoned_image_construction/test_data/edit_type_showcase/color-c.jpg --prompt "Change the visible gutter downspouts on the side of the pub from red to black while preserving the building facade, signs, windows, street, lighting, and realistic appearance." --output outputs/poisoned_image_construction/readme_editor_test.png
+uv run src/poisoned_image_construction/editor.py --image src/poisoned_image_construction/test_data/edit_type_showcase/color-c.jpg --prompt "Change the visible gutter downspouts on the side of the pub from red to black while preserving the building facade, signs, windows, street, lighting, and realistic appearance." --output results/poisoned_image_construction/readme_editor_test.png
 ```
 
 Verifier test:
 
 ```bash
-uv run python src/poisoned_image_construction/verifier.py --query "What color are the downspouts of the gutters on the side of the Bull & Stirrup pub, Chester, England?" --answer "The downspouts of the gutters on the side of the Bull & Stirrup pub are black." --image src/poisoned_image_construction/test_data/edit_type_showcase/color-p.png
+uv run src/poisoned_image_construction/verifier.py --query "What color are the downspouts of the gutters on the side of the Bull & Stirrup pub, Chester, England?" --answer "The downspouts of the gutters on the side of the Bull & Stirrup pub are black." --image src/poisoned_image_construction/test_data/edit_type_showcase/color-p.png
 ```
 
 End-to-end test:
 
 ```bash
-uv run python src/poisoned_image_construction/run_construction.py --input src/poisoned_image_construction/test_data/edit_type_showcase/samples.json --max-items 1 --max-rounds 1 --overwrite
+uv run src/poisoned_image_construction/run_construction.py --input src/poisoned_image_construction/test_data/edit_type_showcase/samples.json --max-items 1 --max-rounds 1 --overwrite
 ```
 
 ## Outputs
@@ -62,11 +70,11 @@ uv run python src/poisoned_image_construction/run_construction.py --input src/po
 By default, generated images are written under:
 
 ```bash
-outputs/poisoned_image_construction/images/
+results/poisoned_image_construction/images/
 ```
 
 The run status, generated image paths, edit instructions, verifier decisions, and errors are written to one report:
 
 ```bash
-outputs/poisoned_image_construction/report.json
+results/poisoned_image_construction/report.json
 ```

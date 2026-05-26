@@ -5,7 +5,7 @@ from typing import Any
 
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
-DEFAULT_RESULT_DIR = ROOT_DIR / "outputs" / "retrieval_p2"
+DEFAULT_RESULT_DIR = ROOT_DIR / "results" / "retrieval_p2"
 BACKEND_ORDER = ["clip", "siglip", "qwen"]
 DATASET_ORDER = ["COCO", "Flickr30k"]
 KB_SIZE_ORDER = ["1k", "10k", "30k"]
@@ -43,8 +43,17 @@ def format_table(headers: list[str], rows: list[list[str]]) -> str:
     return "\n".join(lines)
 
 
-def extract_result(result_dir: Path, backend_name: str, dataset_name: str, kb_size: str) -> str:
-    result_path = result_dir / backend_name / f"retrieval_{backend_name}_{dataset_name.lower()}_{kb_size}.json"
+def extract_result(
+    result_dir: Path,
+    backend_name: str,
+    dataset_name: str,
+    kb_size: str,
+) -> str:
+    result_path = (
+        result_dir
+        / backend_name
+        / f"retrieval_{backend_name}_{dataset_name.lower()}_{kb_size}.json"
+    )
     if not result_path.exists():
         return "-"
     loaded = load_json(result_path)
@@ -57,7 +66,9 @@ def extract_result(result_dir: Path, backend_name: str, dataset_name: str, kb_si
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Print P2 retrieval stats for all backends, datasets, and KB sizes.")
+    parser = argparse.ArgumentParser(
+        description="Print P2 retrieval stats for all backends, datasets, and KB sizes."
+    )
     parser.add_argument("--result-dir", default=str(DEFAULT_RESULT_DIR))
     args = parser.parse_args()
 
@@ -79,4 +90,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

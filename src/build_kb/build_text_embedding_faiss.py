@@ -10,13 +10,28 @@ import faiss
 import numpy as np
 from openai import AsyncOpenAI
 
-from common import DEFAULT_CONFIG_PATH, build_ip_index, default_inputs, default_output_dir, load_config, load_records, write_json
+from common import (
+    DEFAULT_CONFIG_PATH,
+    REPO_ROOT,
+    build_ip_index,
+    default_inputs,
+    default_output_dir,
+    load_config,
+    load_records,
+    write_json,
+)
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Build text-embedding-3-large FAISS indexes for caption text.")
+    parser = argparse.ArgumentParser(
+        description="Build text-embedding-3-large FAISS indexes for caption text."
+    )
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH)
-    parser.add_argument("--openai-config", type=Path, default=Path("configs/openai_models.json"))
+    parser.add_argument(
+        "--openai-config",
+        type=Path,
+        default=REPO_ROOT / "configs" / "openai_models.json",
+    )
     parser.add_argument("--dataset", choices=["COCO", "Flickr30k"], required=True)
     parser.add_argument("--sizes", nargs="+", default=None)
     parser.add_argument("--inputs", type=Path, nargs="+", default=None)
@@ -45,7 +60,13 @@ def resolve_model_tag(model_name: str, api_config: dict[str, Any]) -> str:
     return resolved
 
 
-async def embed_batches(client: AsyncOpenAI, model: str, texts: list[str], batch_size: int, concurrency: int) -> np.ndarray:
+async def embed_batches(
+    client: AsyncOpenAI,
+    model: str,
+    texts: list[str],
+    batch_size: int,
+    concurrency: int,
+) -> np.ndarray:
     semaphore = asyncio.Semaphore(concurrency)
     batches = [(idx, texts[idx : idx + batch_size]) for idx in range(0, len(texts), batch_size)]
 
@@ -63,7 +84,13 @@ async def embed_batches(client: AsyncOpenAI, model: str, texts: list[str], batch
     return np.ascontiguousarray(embeddings, dtype=np.float32)
 
 
-async def process_one(input_path: Path, args: argparse.Namespace, cfg: dict[str, Any], client: AsyncOpenAI, model_name: str) -> None:
+async def process_one(
+    input_path: Path,
+    args: argparse.Namespace,
+    cfg: dict[str, Any],
+    client: AsyncOpenAI,
+    model_name: str,
+) -> None:
     method_cfg = cfg["text_embedding_3_large"]
     records = load_records(input_path)
     text_key = method_cfg["text_key"]
@@ -94,7 +121,16 @@ async def process_one(input_path: Path, args: argparse.Namespace, cfg: dict[str,
             "max_retries": method_cfg["max_retries"],
         },
     )
-    print(json.dumps({"faiss_path": str(faiss_path), "manifest_path": str(manifest_path), "count": len(records)}, ensure_ascii=False))
+    print(
+        json.dumps(
+            {
+                "faiss_path": str(faiss_path),
+                "manifest_path": str(manifest_path),
+                "count": len(records),
+            },
+            ensure_ascii=False,
+        )
+    )
 
 
 async def amain() -> None:

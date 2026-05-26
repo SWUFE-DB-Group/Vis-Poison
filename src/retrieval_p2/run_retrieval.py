@@ -84,7 +84,10 @@ def build_poison_report_lookup(report: Any) -> dict[str, str]:
     for sample_id, row in report.items():
         if not isinstance(row, dict):
             continue
-        poison_path = first_present(row, ["poison_image_path", "poison_construction.poison_image_path"])
+        poison_path = first_present(
+            row,
+            ["poison_image_path", "poison_construction.poison_image_path"],
+        )
         if poison_path:
             lookup[str(sample_id)] = str(poison_path)
     return lookup
@@ -118,10 +121,16 @@ def resolve_poison_image_path(
         if candidates:
             return sorted(candidates, key=poison_image_sort_key)[-1]
 
-    raise FileNotFoundError(f"Could not resolve poison image for sample keys: {sample_keys}")
+    raise FileNotFoundError(
+        f"Could not resolve poison image for sample keys: {sample_keys}"
+    )
 
 
-def normalize_webqa_records(dataset: list[dict[str, Any]], poison_lookup: dict[str, str], poison_image_dir: Path) -> list[dict[str, Any]]:
+def normalize_webqa_records(
+    dataset: list[dict[str, Any]],
+    poison_lookup: dict[str, str],
+    poison_image_dir: Path,
+) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for index, record in enumerate(dataset):
         if not isinstance(record, dict):
@@ -134,7 +143,12 @@ def normalize_webqa_records(dataset: list[dict[str, Any]], poison_lookup: dict[s
             value = record.get(key)
             if value not in (None, ""):
                 sample_keys.append(str(value))
-        poison_path = resolve_poison_image_path(record, sample_keys, poison_lookup, poison_image_dir)
+        poison_path = resolve_poison_image_path(
+            record,
+            sample_keys,
+            poison_lookup,
+            poison_image_dir,
+        )
         rows.append(
             {
                 "record_index": index,
@@ -170,7 +184,12 @@ def get_base_filename(record: dict[str, Any], dataset_name: str) -> str:
     return filename_str
 
 
-def get_base_paths(config: dict[str, Any], backend_name: str, dataset_name: str, size: str) -> tuple[Path, Path]:
+def get_base_paths(
+    config: dict[str, Any],
+    backend_name: str,
+    dataset_name: str,
+    size: str,
+) -> tuple[Path, Path]:
     dataset_cfg = config["datasets"][dataset_name]
     backend_cfg = config["backends"][backend_name]
     base_prefix = dataset_cfg["base_prefix"]
@@ -209,7 +228,10 @@ class ClipBackend:
         self.config = config
         self.device = torch.device("cuda")
         model_path = str(resolve_repo_path(config["model_name_or_path"]))
-        self.processor = AutoProcessor.from_pretrained(model_path, local_files_only=bool(config.get("local_files_only", True)))
+        self.processor = AutoProcessor.from_pretrained(
+            model_path,
+            local_files_only=bool(config.get("local_files_only", True)),
+        )
         self.model = CLIPModel.from_pretrained(
             model_path,
             torch_dtype=torch.float16,
@@ -221,7 +243,15 @@ class ClipBackend:
         vectors: list[np.ndarray] = []
         for start in range(0, len(questions), self.batch_size):
             batch = questions[start : start + self.batch_size]
-            inputs = to_device(self.processor(text=batch, return_tensors="pt", padding=True, truncation=True), self.device)
+            inputs = to_device(
+                self.processor(
+                    text=batch,
+                    return_tensors="pt",
+                    padding=True,
+                    truncation=True,
+                ),
+                self.device,
+            )
             with torch.inference_mode():
                 features = self.model.get_text_features(**inputs)
             features = F.normalize(ensure_feature_tensor(features).float(), dim=-1)
@@ -248,7 +278,10 @@ class SiglipBackend:
         self.config = config
         self.device = torch.device("cuda")
         model_path = str(resolve_repo_path(config["model_name_or_path"]))
-        self.processor = AutoProcessor.from_pretrained(model_path, local_files_only=bool(config.get("local_files_only", True)))
+        self.processor = AutoProcessor.from_pretrained(
+            model_path,
+            local_files_only=bool(config.get("local_files_only", True)),
+        )
         self.model = SiglipModel.from_pretrained(
             model_path,
             torch_dtype=torch.float16,
@@ -261,7 +294,12 @@ class SiglipBackend:
         for start in range(0, len(questions), self.batch_size):
             batch = questions[start : start + self.batch_size]
             inputs = to_device(
-                self.processor(text=batch, return_tensors="pt", padding="max_length", truncation=True),
+                self.processor(
+                    text=batch,
+                    return_tensors="pt",
+                    padding="max_length",
+                    truncation=True,
+                ),
                 self.device,
             )
             with torch.inference_mode():
@@ -282,7 +320,10 @@ class SiglipBackend:
 
 
 def load_qwen_embedder_class() -> Any:
-    spec = importlib.util.spec_from_file_location("retrieval_p2_qwen_embedder", QWEN_EMBEDDER_PATH)
+    spec = importlib.util.spec_from_file_location(
+        "retrieval_p2_qwen_embedder",
+        QWEN_EMBEDDER_PATH,
+    )
     if spec is None or spec.loader is None:
         raise ImportError(f"Could not load Qwen embedder from {QWEN_EMBEDDER_PATH}")
     module = importlib.util.module_from_spec(spec)
@@ -319,11 +360,17 @@ class QwenBackend:
         return np.ascontiguousarray(array, dtype=np.float32)
 
     def encode_queries(self, questions: list[str]) -> np.ndarray:
-        inputs = [{"text": question, "instruction": self.query_instruction} for question in questions]
+        inputs = [
+            {"text": question, "instruction": self.query_instruction}
+            for question in questions
+        ]
         return self._encode_inputs(inputs)
 
     def encode_images(self, paths: list[Path]) -> np.ndarray:
-        inputs = [{"image": str(path), "instruction": self.document_instruction} for path in paths]
+        inputs = [
+            {"image": str(path), "instruction": self.document_instruction}
+            for path in paths
+        ]
         return self._encode_inputs(inputs)
 
 
@@ -340,7 +387,9 @@ def build_backend(name: str, config: dict[str, Any]) -> ClipBackend | SiglipBack
 def load_base_embeddings(faiss_path: Path, normalize: bool) -> np.ndarray:
     index = faiss.read_index(str(faiss_path))
     if not isinstance(index, faiss.IndexFlatIP):
-        raise TypeError(f"Expected IndexFlatIP at {faiss_path}, got {type(index).__name__}")
+        raise TypeError(
+            f"Expected IndexFlatIP at {faiss_path}, got {type(index).__name__}"
+        )
     embeddings = index.reconstruct_n(0, index.ntotal).astype(np.float32)
     if normalize:
         faiss.normalize_L2(embeddings)
@@ -368,7 +417,9 @@ def evaluate_run(
     overwrite: bool,
 ) -> dict[str, Any]:
     output_dir = resolve_repo_path(config["run"]["output_dir"]) / backend_name
-    output_path = output_dir / f"retrieval_{backend_name}_{result_slug(dataset_name)}_{size}.json"
+    output_path = (
+        output_dir / f"retrieval_{backend_name}_{result_slug(dataset_name)}_{size}.json"
+    )
     if output_path.exists() and not overwrite:
         return load_json(output_path)
 
@@ -378,7 +429,10 @@ def evaluate_run(
             raise FileNotFoundError(f"Required path not found: {path}")
 
     base_records = load_base_records(base_json)
-    base_embeddings = load_base_embeddings(base_faiss, normalize=bool(backend_cfg["normalize_base_embeddings"]))
+    base_embeddings = load_base_embeddings(
+        base_faiss,
+        normalize=bool(backend_cfg["normalize_base_embeddings"]),
+    )
     if base_embeddings.shape[0] != len(base_records):
         raise ValueError(
             f"Base record count mismatch for {backend_name}/{dataset_name}/{size}: "
@@ -390,7 +444,10 @@ def evaluate_run(
     query_embeddings = backend.encode_queries(questions)
     poison_embeddings = backend.encode_images(poison_paths)
     if query_embeddings.shape != poison_embeddings.shape:
-        raise RuntimeError(f"Embedding shape mismatch: query={query_embeddings.shape}, poison={poison_embeddings.shape}")
+        raise RuntimeError(
+            "Embedding shape mismatch: "
+            f"query={query_embeddings.shape}, poison={poison_embeddings.shape}"
+        )
     if query_embeddings.shape[1] != base_embeddings.shape[1]:
         raise RuntimeError(
             f"Embedding dim mismatch for {backend_name}/{dataset_name}/{size}: "
@@ -407,7 +464,8 @@ def evaluate_run(
         poison_vec = poison_embeddings[index]
         base_scores = base_embeddings @ query_vec
         poison_score = float(np.dot(poison_vec, query_vec))
-        poison_rank = int(np.sum(base_scores > poison_score) + 1)
+        # Use a conservative tie policy: base images win exact-score ties.
+        poison_rank = int(np.sum(base_scores >= poison_score) + 1)
         hit_top1 = poison_rank <= 1
         hit_top3 = poison_rank <= 3
         top1_hits += int(hit_top1)
@@ -415,7 +473,10 @@ def evaluate_run(
 
         top_base_idx, top_base_scores = get_topk_base(base_scores, k=top_k)
         candidates: list[dict[str, Any]] = []
-        for rank_position, (base_index, base_score) in enumerate(zip(top_base_idx.tolist(), top_base_scores.tolist()), start=1):
+        for rank_position, (base_index, base_score) in enumerate(
+            zip(top_base_idx.tolist(), top_base_scores.tolist()),
+            start=1,
+        ):
             candidates.append(
                 {
                     "type": "base",
@@ -433,7 +494,10 @@ def evaluate_run(
                 "score": poison_score,
             }
         )
-        candidates.sort(key=lambda item: (-item["score"], 1 if item["type"] == "poison" else 0))
+        # Break ties in favor of base images so poison needs strictly competitive scores.
+        candidates.sort(
+            key=lambda item: (-item["score"], 1 if item["type"] == "poison" else 0)
+        )
 
         records_out.append(
             {
@@ -452,10 +516,16 @@ def evaluate_run(
                 "base_top3_without_poison": [
                     {
                         "base_index": int(base_index),
-                        "base_image": get_base_filename(base_records[base_index], dataset_name),
+                        "base_image": get_base_filename(
+                            base_records[base_index],
+                            dataset_name,
+                        ),
                         "score": float(base_score),
                     }
-                    for base_index, base_score in zip(top_base_idx.tolist(), top_base_scores.tolist())
+                    for base_index, base_score in zip(
+                        top_base_idx.tolist(),
+                        top_base_scores.tolist(),
+                    )
                 ],
             }
         )
@@ -489,10 +559,25 @@ def evaluate_run(
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run retrieval robustness evaluation for CLIP, SigLIP, and Qwen3-VL backends.")
+    parser = argparse.ArgumentParser(
+        description=(
+            "Run retrieval robustness evaluation for CLIP, SigLIP, "
+            "and Qwen3-VL backends."
+        )
+    )
     parser.add_argument("--config", default=str(DEFAULT_CONFIG_PATH))
-    parser.add_argument("--backend", action="append", choices=["clip", "siglip", "qwen"], default=None)
-    parser.add_argument("--dataset", action="append", choices=["COCO", "Flickr30k"], default=None)
+    parser.add_argument(
+        "--backend",
+        action="append",
+        choices=["clip", "siglip", "qwen"],
+        default=None,
+    )
+    parser.add_argument(
+        "--dataset",
+        action="append",
+        choices=["COCO", "Flickr30k"],
+        default=None,
+    )
     parser.add_argument("--size", action="append", choices=["1k", "10k", "30k"], default=None)
     parser.add_argument("--overwrite", action="store_true")
     return parser.parse_args()
@@ -538,8 +623,10 @@ def main() -> None:
                 summary = result["summary"]
                 print(
                     f"[{backend_name}][{dataset_name}][{size}] "
-                    f"top1={summary['top1_hits']}/{summary['total']} ({summary['top1_rate'] * 100:.1f}%), "
-                    f"top3={summary['top3_hits']}/{summary['total']} ({summary['top3_rate'] * 100:.1f}%)"
+                    f"top1={summary['top1_hits']}/{summary['total']} "
+                    f"({summary['top1_rate'] * 100:.1f}%), "
+                    f"top3={summary['top3_hits']}/{summary['total']} "
+                    f"({summary['top3_rate'] * 100:.1f}%)"
                 )
                 summary_rows.append(
                     {

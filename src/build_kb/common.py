@@ -43,7 +43,12 @@ def load_records(path: Path) -> list[dict[str, Any]]:
 
 
 def model_slug(model_name: str) -> str:
-    return model_name.replace("/", "_").replace("\\", "_").replace("-", "_").replace(".", "_")
+    return (
+        model_name.replace("/", "_")
+        .replace("\\", "_")
+        .replace("-", "_")
+        .replace(".", "_")
+    )
 
 
 def image_filename(record: dict[str, Any], dataset_name: str) -> str:
@@ -59,7 +64,11 @@ def image_filename(record: dict[str, Any], dataset_name: str) -> str:
     return filename
 
 
-def default_inputs(config: dict[str, Any], dataset_name: str, sizes: list[str] | None) -> list[Path]:
+def default_inputs(
+    config: dict[str, Any],
+    dataset_name: str,
+    sizes: list[str] | None,
+) -> list[Path]:
     dataset_config = config["datasets"][dataset_name]
     data_dir = resolve_repo_path(dataset_config["data_dir"])
     prefix = dataset_config["prefix"]
@@ -80,4 +89,3 @@ def build_ip_index(embeddings: np.ndarray) -> faiss.IndexFlatIP:
     index = faiss.IndexFlatIP(embeddings.shape[1])
     index.add(embeddings)
     return index
-

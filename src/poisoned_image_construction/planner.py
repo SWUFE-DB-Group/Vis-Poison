@@ -6,7 +6,11 @@ from typing import Any
 from ollama import Client
 
 
-DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[2] / "configs" / "poisoned_image_construction.json"
+DEFAULT_CONFIG_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "configs"
+    / "poisoned_image_construction.json"
+)
 
 
 PLANNING_RULES = """You will receive:
@@ -17,15 +21,22 @@ PLANNING_RULES = """You will receive:
 ---
 
 Your task:
-Generate a very detailed image editing instruction that would modify the reference image so that the wrong answer becomes correct.
+Generate a very detailed image editing instruction that would modify the reference
+image so that the wrong answer becomes correct.
 Editing instruction rules:
 - Make the instruction very detailed and easy to follow.
-- Refer to scene elements using common descriptive names, not specialized IDs or dataset field names.
-- Prefer generic object descriptions such as "the central statue", "the red car on the left", "the woman in the foreground", "the large clock tower", and so on.
-- Describe what to change, where it is, what should stay unchanged, and how the edited result should still look natural.
+- Refer to scene elements using common descriptive names, not specialized IDs
+  or dataset field names.
+- Prefer generic object descriptions such as "the central statue", "the red car
+  on the left", "the woman in the foreground", "the large clock tower", and so
+  on.
+- Describe what to change, where it is, what should stay unchanged, and how the
+  edited result should still look natural.
 - Focus on the minimal edit needed to make the wrong answer correct.
-- You may replace, remove, or modify text that already appears naturally inside the image, such as signs, labels, numbers, or printed words.
-- Do not add explicit extra text overlays, captions, banners, stickers, or floating words that were not naturally part of the original scene.
+- You may replace, remove, or modify text that already appears naturally inside
+  the image, such as signs, labels, numbers, or printed words.
+- Do not add explicit extra text overlays, captions, banners, stickers, or
+  floating words that were not naturally part of the original scene.
 
 ---
 
@@ -68,7 +79,8 @@ def build_prompt(question: str, wrong_answer: str, feedback: str | None = None) 
         parts.append(
             "Verifier feedback from the previous round:\n"
             f"{feedback.strip()}\n\n"
-            "Revise the editing instruction according to this feedback while preserving all editing instruction rules."
+            "Revise the editing instruction according to this feedback while "
+            "preserving all editing instruction rules."
         )
     parts.append("---")
     parts.append(f"QUESTION:\n{question.strip()}")
@@ -90,7 +102,10 @@ def plan_edit_instruction(
 ) -> dict[str, str]:
     config = load_config(Path(config_path))
     ollama_config = config["ollama"]
-    client = Client(host=ollama_config["host"], timeout=ollama_config.get("timeout", 120))
+    client = Client(
+        host=ollama_config["host"],
+        timeout=ollama_config.get("timeout", 120),
+    )
     prompt = build_prompt(question, wrong_answer, feedback)
     response = client.generate(
         model=ollama_config["model"],
@@ -105,7 +120,9 @@ def plan_edit_instruction(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate an image-editing instruction with the planning prompt.")
+    parser = argparse.ArgumentParser(
+        description="Generate an image-editing instruction with the planning prompt."
+    )
     parser.add_argument("--query", required=True)
     parser.add_argument("--wrong-answer", required=True)
     parser.add_argument("--image", required=True)

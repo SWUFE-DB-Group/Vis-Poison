@@ -9,7 +9,8 @@ from diffusers import Flux2KleinPipeline
 from PIL import Image
 
 
-DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[2] / "configs" / "poisoned_image_construction.json"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_CONFIG_PATH = REPO_ROOT / "configs" / "poisoned_image_construction.json"
 
 _PIPE: Flux2KleinPipeline | None = None
 _PIPE_MODEL_DIR: str | None = None
@@ -19,9 +20,16 @@ def load_config(path: Path = DEFAULT_CONFIG_PATH) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def resolve_repo_path(path: str | Path) -> Path:
+    path_obj = Path(path)
+    if path_obj.is_absolute():
+        return path_obj
+    return REPO_ROOT / path_obj
+
+
 def get_pipeline(model_dir: str | Path) -> Flux2KleinPipeline:
     global _PIPE, _PIPE_MODEL_DIR
-    model_dir = str(model_dir)
+    model_dir = str(resolve_repo_path(model_dir))
     if _PIPE is not None and _PIPE_MODEL_DIR == model_dir:
         return _PIPE
 
@@ -60,30 +68,44 @@ def edit_image(
     editor_config = config["editor"]
     pipe = get_pipeline(editor_config["model_path"])
 
-    image_path = Path(image_path)
-    output_path = Path(output_path)
+    image_path = resolve_repo_path(image_path)
+    output_path = resolve_repo_path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    input_image = Image.open(image_path).convert("RGB")
-    width, height = input_image.size
-    generator = torch.Generator("cpu").manual_seed(seed if seed is not None else editor_config.get("seed", 42))
+    with Image.open(image_path) as opened_image:
+        input_image = opened_image.convert("RGB")
+        width, height = input_image.size
+        generator = torch.Generator("cpu").manual_seed(
+            seed if seed is not None else editor_config.get("seed", 42)
+        )
 
-    try:
-        # Keep the edited image aligned with the source image size.
-        result = pipe(
-            prompt=prompt.strip(),
-            image=input_image,
-            width=width,
-            height=height,
-            num_inference_steps=num_inference_steps or editor_config.get("num_inference_steps", 4),
-            guidance_scale=guidance_scale if guidance_scale is not None else editor_config.get("guidance_scale", 1.0),
-            generator=generator,
-        ).images[0]
-        result.save(output_path, format="PNG")
-    finally:
-        should_release = editor_config.get("release_after_edit", True) if release_after_edit is None else release_after_edit
-        if should_release:
-            release_pipeline()
+        try:
+            # Keep the edited image aligned with the source image size.
+            result = pipe(
+                prompt=prompt.strip(),
+                image=input_image,
+                width=width,
+                height=height,
+                num_inference_steps=(
+                    num_inference_steps
+                    or editor_config.get("num_inference_steps", 4)
+                ),
+                guidance_scale=(
+                    guidance_scale
+                    if guidance_scale is not None
+                    else editor_config.get("guidance_scale", 1.0)
+                ),
+                generator=generator,
+            ).images[0]
+            result.save(output_path, format="PNG")
+        finally:
+            should_release = (
+                editor_config.get("release_after_edit", True)
+                if release_after_edit is None
+                else release_after_edit
+            )
+            if should_release:
+                release_pipeline()
 
     return output_path
 

@@ -11,7 +11,7 @@ from openai import OpenAI
 ROOT_DIR = Path(__file__).resolve().parents[2]
 DEFAULT_DATASET_PATH = ROOT_DIR / "dataset" / "webqa_final_category_difficulty_sample_70.json"
 DEFAULT_API_CONFIG_PATH = ROOT_DIR / "configs" / "openai_models.json"
-OUTPUT_DIR = ROOT_DIR / "outputs" / "retrieval_p1"
+OUTPUT_DIR = ROOT_DIR / "results" / "retrieval_p1"
 EMBED_MODEL_NAME = "text-embedding-3-large"
 EMBED_BATCH_SIZE = 64
 
@@ -85,8 +85,13 @@ def get_kb_paths(group_name: str, kb_size: str) -> tuple[Path, Path, Path]:
     config = KB_GROUPS[group_name]
     prefix = config["prefix"]
     data_path = config["dir"] / f"{prefix}_{kb_size}_captions.json"
-    faiss_path = config["embed_dir"] / f"{prefix}_{kb_size}_captions_text_embedding_3_large.faiss"
-    manifest_path = config["embed_dir"] / f"{prefix}_{kb_size}_captions_text_embedding_3_large_manifest.json"
+    faiss_path = (
+        config["embed_dir"] / f"{prefix}_{kb_size}_captions_text_embedding_3_large.faiss"
+    )
+    manifest_path = (
+        config["embed_dir"]
+        / f"{prefix}_{kb_size}_captions_text_embedding_3_large_manifest.json"
+    )
     for path in (data_path, faiss_path, manifest_path):
         if not path.exists():
             raise FileNotFoundError(f"Required KB file not found: {path}")
@@ -156,8 +161,9 @@ def evaluate_single_kb(
         base_indices = indices[0]
         caption_score = float(np.dot(query_vector[0], caption_vector[0]))
 
-        hit_top1 = bool(len(base_scores) >= 1 and caption_score >= float(base_scores[0]))
-        hit_top3 = bool(len(base_scores) >= 3 and caption_score >= float(base_scores[2]))
+        # Keep the metric conservative by treating exact ties as non-hits.
+        hit_top1 = bool(len(base_scores) >= 1 and caption_score > float(base_scores[0]))
+        hit_top3 = bool(len(base_scores) >= 3 and caption_score > float(base_scores[2]))
         top1_hits += int(hit_top1)
         top3_hits += int(hit_top3)
 
@@ -255,7 +261,12 @@ def main() -> None:
     parser.add_argument("--dataset", default=str(DEFAULT_DATASET_PATH))
     parser.add_argument("--api-config", default=str(DEFAULT_API_CONFIG_PATH))
     parser.add_argument("--output-dir", default=str(OUTPUT_DIR))
-    parser.add_argument("--model", action="append", default=None, help="Caption model display name. Can be repeated.")
+    parser.add_argument(
+        "--model",
+        action="append",
+        default=None,
+        help="Caption model display name. Can be repeated.",
+    )
     parser.add_argument("--overwrite", action="store_true")
     args = parser.parse_args()
 

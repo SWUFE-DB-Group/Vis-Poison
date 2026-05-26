@@ -2,6 +2,11 @@
 
 This folder contains the minimal scripts used to run TruFor as an image-forensics safeguard in our experiments.
 
+## Files
+
+- `run_imgs_180_trufor.sh`: run TruFor over three image groups
+- `summarize_imgs_180_trufor.py`: summarize `.npz` outputs into CSV tables
+
 We do not vendor the full TruFor repository or model weights here. The scripts assume that TruFor has already been packaged as a Docker image named `trufor:server`.
 
 ## Input layout
@@ -9,17 +14,21 @@ We do not vendor the full TruFor repository or model weights here. The scripts a
 The server-side input directory used in our experiment was:
 
 ```text
-/home/ubuntu/liangrj/imgs_180
+dataset/trufor_workspace
 ```
+
+`run_imgs_180_trufor.sh` resolves this path from the repository root by default.
 
 Expected files and folders:
 
 ```text
-imgs_180/
+dataset/trufor_workspace/
   sample_180.json
   poison/
   clip_white_data_2/
   siglip_white_data_2/
+  trufor_outputs/
+  trufor_logs/
 ```
 
 Each image folder contains 180 poisoned images. `sample_180.json` contains the metadata, including the edit category under:
@@ -33,7 +42,7 @@ counterfactual_edit.category
 Run all three groups with TruFor in CPU mode:
 
 ```bash
-bash run_imgs_180_trufor.sh
+bash src/safeguard/run_imgs_180_trufor.sh
 ```
 
 The script runs:
@@ -48,9 +57,9 @@ docker run --rm \
 Outputs are written to:
 
 ```text
-/home/ubuntu/liangrj/imgs_180/trufor_outputs/<group>/*.npz
-/home/ubuntu/liangrj/imgs_180/trufor_logs/<group>.log
-/home/ubuntu/liangrj/imgs_180/trufor_logs/<group>.status
+dataset/trufor_workspace/trufor_outputs/<group>/*.npz
+dataset/trufor_workspace/trufor_logs/<group>.log
+dataset/trufor_workspace/trufor_logs/<group>.status
 ```
 
 Each `.npz` contains TruFor's standard outputs, including:
@@ -70,16 +79,17 @@ The summarizer needs `numpy`, so we run it inside the same Docker image:
 
 ```bash
 docker run --rm --entrypoint python \
-  -v /home/ubuntu/liangrj/imgs_180:/work \
+  -v dataset/trufor_workspace:/work \
+  -v src/safeguard/summarize_imgs_180_trufor.py:/work/summarize_imgs_180_trufor.py:ro \
   trufor:server /work/summarize_imgs_180_trufor.py
 ```
 
 Summary files are written to:
 
 ```text
-/home/ubuntu/liangrj/imgs_180/trufor_results/trufor_group_summary.csv
-/home/ubuntu/liangrj/imgs_180/trufor_results/trufor_category_summary.csv
-/home/ubuntu/liangrj/imgs_180/trufor_results/trufor_all_scores.csv
+dataset/trufor_workspace/trufor_results/trufor_group_summary.csv
+dataset/trufor_workspace/trufor_results/trufor_category_summary.csv
+dataset/trufor_workspace/trufor_all_scores.csv
 ```
 
 `trufor_group_summary.csv` reports detection counts and score statistics for each group.

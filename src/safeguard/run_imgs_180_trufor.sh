@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
-BASE=/home/ubuntu/liangrj/imgs_180
-PKG=/home/ubuntu/liangrj/trufor_server_pkg
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+BASE="${BASE:-$REPO_ROOT/dataset/trufor_workspace}"
+PKG="${PKG:-$REPO_ROOT/third_party/trufor_server_pkg}"
+
 cd "$PKG"
 mkdir -p "$BASE/trufor_outputs" "$BASE/trufor_logs"
 for group in poison clip_white_data_2 siglip_white_data_2; do

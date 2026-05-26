@@ -25,7 +25,12 @@ from qwen3_vl_embedding import Qwen3VLEmbedder
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Build Qwen3-VL-Embedding image FAISS indexes for COCO/Flickr30k KB captions.")
+    parser = argparse.ArgumentParser(
+        description=(
+            "Build Qwen3-VL-Embedding image FAISS indexes for "
+            "COCO/Flickr30k KB captions."
+        )
+    )
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH)
     parser.add_argument("--dataset", choices=["COCO", "Flickr30k"], required=True)
     parser.add_argument("--sizes", nargs="+", default=None)
@@ -39,7 +44,11 @@ def parse_args() -> argparse.Namespace:
 def build_embedder(method_cfg: dict[str, Any]) -> Qwen3VLEmbedder:
     configured_path = str(method_cfg["model_name_or_path"])
     candidate_path = resolve_repo_path(configured_path)
-    model_name_or_path = str(candidate_path) if candidate_path.exists() or Path(configured_path).is_absolute() else configured_path
+    model_name_or_path = (
+        str(candidate_path)
+        if candidate_path.exists() or Path(configured_path).is_absolute()
+        else configured_path
+    )
     device_map = "cuda" if torch.cuda.is_available() else "cpu"
     dtype = torch.bfloat16 if torch.cuda.is_available() else torch.float32
     return Qwen3VLEmbedder(
@@ -76,13 +85,25 @@ def encode_images(
     return np.ascontiguousarray(embeddings, dtype=np.float32)
 
 
-def process_one(input_path: Path, args: argparse.Namespace, cfg: dict[str, Any], embedder: Qwen3VLEmbedder) -> None:
+def process_one(
+    input_path: Path,
+    args: argparse.Namespace,
+    cfg: dict[str, Any],
+    embedder: Qwen3VLEmbedder,
+) -> None:
     method_cfg = cfg["qwen"]
     records = load_records(input_path)
     images_dir = args.images_dir or default_images_dir(cfg, args.dataset)
     output_dir = args.output_dir or default_output_dir(cfg, args.dataset, "qwen")
     batch_size = args.batch_size or int(method_cfg["batch_size"])
-    embeddings = encode_images(embedder, records, images_dir, input_path, args.dataset, batch_size)
+    embeddings = encode_images(
+        embedder,
+        records,
+        images_dir,
+        input_path,
+        args.dataset,
+        batch_size,
+    )
     index = build_ip_index(embeddings)
     faiss_path = output_dir / f"{input_path.stem}_{method_cfg['model_slug']}.faiss"
     manifest_path = output_dir / f"{input_path.stem}_{method_cfg['model_slug']}_manifest.json"
@@ -104,7 +125,16 @@ def process_one(input_path: Path, args: argparse.Namespace, cfg: dict[str, Any],
             "document_instruction": method_cfg["instruction"],
         },
     )
-    print(json.dumps({"faiss_path": str(faiss_path), "manifest_path": str(manifest_path), "count": len(records)}, ensure_ascii=False))
+    print(
+        json.dumps(
+            {
+                "faiss_path": str(faiss_path),
+                "manifest_path": str(manifest_path),
+                "count": len(records),
+            },
+            ensure_ascii=False,
+        )
+    )
 
 
 def main() -> None:

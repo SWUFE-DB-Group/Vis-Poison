@@ -6,7 +6,7 @@ from typing import Any
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 DEFAULT_DATASET_PATH = ROOT_DIR / "dataset" / "webqa_final_category_difficulty_sample_70.json"
-DEFAULT_RESULT_DIR = ROOT_DIR / "outputs" / "retrieval_p1"
+DEFAULT_RESULT_DIR = ROOT_DIR / "results" / "retrieval_p1"
 DATASET_ORDER = ["COCO", "Flickr30k"]
 KB_SIZE_ORDER = ["1k", "10k", "30k"]
 CAPTION_MODELS = [
@@ -82,7 +82,9 @@ def extract_metrics(data: dict[str, Any], dataset_name: str, kb_size: str) -> st
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Print P1 retrieval stats for the nine caption models.")
+    parser = argparse.ArgumentParser(
+        description="Print P1 retrieval stats for the nine caption models."
+    )
     parser.add_argument("--dataset", default=str(DEFAULT_DATASET_PATH))
     parser.add_argument("--result-dir", default=str(DEFAULT_RESULT_DIR))
     args = parser.parse_args()
@@ -117,4 +119,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

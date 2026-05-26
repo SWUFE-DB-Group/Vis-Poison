@@ -17,8 +17,8 @@ dataset/webqa_final_category_difficulty_sample_70.json
 2. Poisoned-image construction outputs from `src/poisoned_image_construction/`:
 
 ```text
-outputs/poisoned_image_construction/report.json
-outputs/poisoned_image_construction/images/
+results/poisoned_image_construction/report.json
+results/poisoned_image_construction/images/
 ```
 
 3. Clean KB image indexes built by `src/build_kb/`:
@@ -48,13 +48,15 @@ Stats script:
 src/retrieval_p2/stats_retrieval.py
 ```
 
+Run `run_retrieval.py` first. `stats_retrieval.py` only summarizes existing result files.
+
 ## Input Resolution
 
 The main script reads:
 
 - `dataset/webqa_final_category_difficulty_sample_70.json`
-- `outputs/poisoned_image_construction/report.json`
-- `outputs/poisoned_image_construction/images/`
+- `results/poisoned_image_construction/report.json`
+- `results/poisoned_image_construction/images/`
 
 Poison image paths are resolved in this order:
 
@@ -99,7 +101,9 @@ uv run src/retrieval_p2/stats_retrieval.py
 Results are written under:
 
 ```text
-outputs/retrieval_p2/
+results/retrieval_p2/
 ```
 
 The main script writes one result JSON per backend/dataset/size and a top-level `retrieval_summary.json`.
+
+Tie policy: exact score ties are resolved in favor of clean KB images, and the reported poison rank follows the same conservative rule.

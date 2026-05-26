@@ -9,7 +9,7 @@
   },
   "editor": {
     "model_name": "flux2-9b",
-    "model_path": "/home/ubuntu/liangrj/.models/black-forest-labs/FLUX.2-klein-9B",
+    "model_path": ".models/black-forest-labs/FLUX.2-klein-9B",
     "num_inference_steps": 4,
     "guidance_scale": 1.0,
     "seed": 42,
@@ -19,7 +19,7 @@
     "max_rounds": 1
   },
   "outputs": {
-    "poison_image_dir": "outputs/poisoned_image_construction/images",
-    "report_path": "outputs/poisoned_image_construction/report.json"
+    "poison_image_dir": "results/poisoned_image_construction/images",
+    "report_path": "results/poisoned_image_construction/report.json"
   }
 }

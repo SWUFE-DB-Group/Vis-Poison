@@ -42,6 +42,8 @@ The repository does not commit these KB files by default. Prepare them first, th
 - `src/retrieval_p1/run_retrieval.py`: run retrieval evaluation with `text-embedding-3-large`
 - `src/retrieval_p1/stats_retrieval.py`: summarize finished result files
 
+The result directory is not committed by default. Run `run_retrieval.py` before `stats_retrieval.py`.
+
 ## Run
 
 Evaluate all nine caption models:
@@ -65,7 +67,9 @@ uv run src/retrieval_p1/stats_retrieval.py
 Results are written to:
 
 ```text
-outputs/retrieval_p1/
+results/retrieval_p1/
 ```
 
 Each caption model produces one result JSON plus a `retrieval_summary.json`.
+
+Tie policy: exact score ties are treated as non-hits, so the reported top-1 and top-3 rates stay conservative.
