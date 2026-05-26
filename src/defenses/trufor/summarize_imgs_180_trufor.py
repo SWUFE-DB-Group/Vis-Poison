@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import csv
 import json
 from pathlib import Path
@@ -7,10 +8,8 @@ from typing import Any
 
 import numpy as np
 
-WORK_DIR = Path("/work")
-SAMPLE_JSON = WORK_DIR / "sample_180.json"
-OUTPUT_ROOT = WORK_DIR / "trufor_outputs"
-RESULT_ROOT = WORK_DIR / "trufor_results"
+REPO_ROOT = Path(__file__).resolve().parents[3]
+DEFAULT_BASE = REPO_ROOT / "dataset" / "trufor_workspace"
 GROUPS = ["poison", "clip_white_data_2", "siglip_white_data_2"]
 THRESHOLD = 0.5
 
@@ -32,13 +31,27 @@ def safe_float(value: Any) -> float | None:
         return None
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Summarize TruFor outputs from a repo-relative workspace."
+    )
+    parser.add_argument("--base", type=Path, default=DEFAULT_BASE)
+    return parser.parse_args()
+
+
 def main() -> None:
-    RESULT_ROOT.mkdir(parents=True, exist_ok=True)
-    sample = load_json(SAMPLE_JSON)
+    args = parse_args()
+    base_dir = args.base if args.base.is_absolute() else REPO_ROOT / args.base
+    sample_json = base_dir / "sample_180.json"
+    output_root = base_dir / "trufor_outputs"
+    result_root = base_dir / "trufor_results"
+
+    result_root.mkdir(parents=True, exist_ok=True)
+    sample = load_json(sample_json)
     meta = {str(row.get("id", "")).strip(): row for row in sample if isinstance(row, dict)}
     all_rows: list[dict[str, Any]] = []
     for group in GROUPS:
-        for path in sorted((OUTPUT_ROOT / group).glob("*.npz")):
+        for path in sorted((output_root / group).glob("*.npz")):
             sample_id = path.stem
             npz = np.load(path, allow_pickle=True)
             score = safe_float(npz.get("score"))
@@ -52,7 +65,7 @@ def main() -> None:
                 "map_max": float(np.max(map_arr)) if isinstance(map_arr, np.ndarray) else None,
                 "category": str(meta.get(sample_id, {}).get("counterfactual_edit", {}).get("category", "unknown")),
             })
-    with (RESULT_ROOT / "trufor_all_scores.csv").open("w", newline="", encoding="utf-8") as f:
+    with (result_root / "trufor_all_scores.csv").open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=["group", "id", "category", "score", "detected", "map_mean", "map_max"])
         writer.writeheader()
         writer.writerows(all_rows)
@@ -65,7 +78,7 @@ def main() -> None:
             bucket["detected"] += int(bool(row["detected"]))
             if row["score"] is not None:
                 bucket["scores"].append(float(row["score"]))
-        with (RESULT_ROOT / filename).open("w", newline="", encoding="utf-8") as f:
+        with (result_root / filename).open("w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow([key, "count", "detected", "detected_rate", "score_mean", "score_std"])
             for name, payload in summary.items():

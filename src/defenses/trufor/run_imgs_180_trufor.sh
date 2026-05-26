@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-in_dir="/home/ubuntu/liangrj/imgs_180"
-out_root="$in_dir/trufor_outputs"
-log_root="$in_dir/trufor_logs"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+BASE="${BASE:-$REPO_ROOT/dataset/trufor_workspace}"
+out_root="$BASE/trufor_outputs"
+log_root="$BASE/trufor_logs"
 groups=(poison clip_white_data_2 siglip_white_data_2)
 
 mkdir -p "$out_root" "$log_root"
 for group in "${groups[@]}"; do
-  src="$in_dir/$group"
+  src="$BASE/$group"
   dst="$out_root/$group"
   log="$log_root/$group.log"
   status="$log_root/$group.status"

@@ -6,20 +6,22 @@ We do not vendor the full TruFor repository or model weights here. The scripts a
 
 ## Input layout
 
-Expected input directory:
+The default workspace is resolved from the repository root:
 
 ```text
-/home/ubuntu/liangrj/imgs_180
+dataset/trufor_workspace
 ```
 
 Expected files and folders:
 
 ```text
-imgs_180/
+dataset/trufor_workspace/
   sample_180.json
   poison/
   clip_white_data_2/
   siglip_white_data_2/
+  trufor_outputs/
+  trufor_logs/
 ```
 
 Each image folder contains 180 poisoned images. `sample_180.json` stores the metadata, including the edit category under `counterfactual_edit.category`.
@@ -33,9 +35,9 @@ bash run_imgs_180_trufor.sh
 Outputs are written to:
 
 ```text
-/home/ubuntu/liangrj/imgs_180/trufor_outputs/<group>/*.npz
-/home/ubuntu/liangrj/imgs_180/trufor_logs/<group>.log
-/home/ubuntu/liangrj/imgs_180/trufor_logs/<group>.status
+dataset/trufor_workspace/trufor_outputs/<group>/*.npz
+dataset/trufor_workspace/trufor_logs/<group>.log
+dataset/trufor_workspace/trufor_logs/<group>.status
 ```
 
 We use `score > 0.5` as the binary detection rule.
@@ -44,6 +46,6 @@ We use `score > 0.5` as the binary detection rule.
 
 ```bash
 docker run --rm --entrypoint python \
-  -v /home/ubuntu/liangrj/imgs_180:/work \
+  -v dataset/trufor_workspace:/work \
   trufor:server /work/summarize_imgs_180_trufor.py
 ```
