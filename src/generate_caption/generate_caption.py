@@ -53,12 +53,29 @@ def generate_caption(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate one retrieval caption from a local image path or image URL.")
+    parser = argparse.ArgumentParser(
+        description=(
+            "Generate one retrieval caption from a local image path "
+            "or image URL."
+        )
+    )
     parser.add_argument("--image", default=None, help="Local image path, HTTP(S) URL, or data URL")
     parser.add_argument("--image-url", default=None, help="Deprecated alias for --image")
-    parser.add_argument("--model", default=None, help="Display name or API model tag from configs/openai_models.json")
-    parser.add_argument("--config", default=str(DEFAULT_CAPTION_CONFIG_PATH), help="Caption prompt/options config")
-    parser.add_argument("--api-config", default=str(DEFAULT_API_CONFIG_PATH), help="Local API/model config")
+    parser.add_argument(
+        "--model",
+        default=None,
+        help="Display name or API model tag from configs/openai_models.json",
+    )
+    parser.add_argument(
+        "--config",
+        default=str(DEFAULT_CAPTION_CONFIG_PATH),
+        help="Caption prompt/options config",
+    )
+    parser.add_argument(
+        "--api-config",
+        default=str(DEFAULT_API_CONFIG_PATH),
+        help="Local API/model config",
+    )
     args = parser.parse_args()
 
     image = args.image or args.image_url

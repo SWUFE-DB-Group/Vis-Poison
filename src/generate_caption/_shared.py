@@ -100,12 +100,20 @@ def build_model_kwargs(model_tag: str, caption_config: dict[str, Any]) -> dict[s
 
     if options.get("disable_thinking", True):
         prefix_bodies = options.get("thinking_disabled_extra_body_by_prefix", {})
-        extra_body = find_prefix_config(model_tag, prefix_bodies) if isinstance(prefix_bodies, dict) else None
+        extra_body = (
+            find_prefix_config(model_tag, prefix_bodies)
+            if isinstance(prefix_bodies, dict)
+            else None
+        )
         if isinstance(extra_body, dict) and extra_body:
             kwargs["extra_body"] = extra_body
 
         reasoning_prefixes = options.get("reasoning_effort_by_prefix", {})
-        reasoning_effort = find_prefix_config(model_tag, reasoning_prefixes) if isinstance(reasoning_prefixes, dict) else None
+        reasoning_effort = (
+            find_prefix_config(model_tag, reasoning_prefixes)
+            if isinstance(reasoning_prefixes, dict)
+            else None
+        )
         if reasoning_effort:
             kwargs["reasoning_effort"] = reasoning_effort
 

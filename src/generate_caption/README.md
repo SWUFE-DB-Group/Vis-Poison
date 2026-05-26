@@ -2,6 +2,12 @@
 
 Synchronous OpenAI-compatible image caption generation.
 
+## Files
+
+- `generate_caption.py`: command-line entry point
+- `_shared.py`: local image normalization and provider-specific request options
+- `test_data/`: two sample images for smoke tests
+
 ## Config Files
 
 Caption task config is committed in:
@@ -95,3 +101,5 @@ Output is printed to stdout:
   "caption": "..."
 }
 ```
+
+No result file is written by default. This folder is only for one-shot caption generation.
