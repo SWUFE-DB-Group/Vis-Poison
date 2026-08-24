@@ -58,3 +58,16 @@ Code and lightweight data artifacts for the Vis-Poison project.
   `configs/retrieval_p2.json`
 
 Detailed usage instructions are documented in the README files inside each subdirectory under `src/`.
+
+----
+
+If you find our work useful or use it in your research, please consider citing our `EMNLP` 2026 paper:
+
+```bib
+@inproceedings{liang2026vispoison,
+  title     = {Vis-Poison: Poisoning Visual Knowledge in Multimodal Retrieval-Augmented Generation},
+  author    = {Liang, Rujin and Chen, Zhongpu and Lei, Yuhao and Miao, Xin},
+  booktitle = {Findings of the Association for Computational Linguistics: EMNLP 2026},
+  year      = {2026}
+}
+```
