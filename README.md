@@ -61,7 +61,7 @@ Detailed usage instructions are documented in the README files inside each subdi
 
 ----
 
-If you find our work useful or use it in your research, please consider citing our `EMNLP` 2026 paper:
+If you find our work useful or use it in your research, please consider citing our [`EMNLP` 2026 paper](https://arxiv.org/abs/2608.20756):
 
 ```bib
 @inproceedings{liang2026vispoison,
