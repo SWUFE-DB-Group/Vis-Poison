@@ -29,7 +29,7 @@ Code and lightweight data artifacts for the Vis-Poison project.
   Defense-side experiments, including isValid-style filtering, top-k evaluation, and TruFor-related scripts.
 
 - `dataset/`
-  Datasets and intermediate data files.
+  Datasets and intermediate data files. The dataset is available at [Google Drive](https://drive.google.com/drive/folders/1lnuCwqdQEGqvyWPb_Jf87yNl8aRgkAXn?usp=sharing).
 
 - `results/`
   Example outputs and experiment results.
