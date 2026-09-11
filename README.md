@@ -1,6 +1,6 @@
 # Vis-Poison: Poisoning Visual Knowledge in Multimodal Retrieval-Augmented Generation
 
-Code and lightweight data artifacts for the Vis-Poison project.
+Official implementation and data resources for our **Findings of EMNLP 2026** paper ([arXiv](https://arxiv.org/abs/2608.20756)).
 
 ## Repository Structure
 
@@ -29,7 +29,7 @@ Code and lightweight data artifacts for the Vis-Poison project.
   Defense-side experiments, including isValid-style filtering, top-k evaluation, and TruFor-related scripts.
 
 - `dataset/`
-  Datasets and intermediate data files. The dataset is available on [Hugging Face](https://huggingface.co/datasets/liangrujin/Vis-Poison) and  [Google Drive](https://drive.google.com/drive/folders/1lnuCwqdQEGqvyWPb_Jf87yNl8aRgkAXn?usp=sharing).
+  Dataset metadata, retrieval corpora, and intermediate data files used by the experiments. The released Vis-Poison dataset is available on [Hugging Face](https://huggingface.co/datasets/liangrujin/Vis-Poison) and  [Google Drive](https://drive.google.com/drive/folders/1lnuCwqdQEGqvyWPb_Jf87yNl8aRgkAXn?usp=sharing).
 
 - `results/`
   Example outputs and experiment results.
