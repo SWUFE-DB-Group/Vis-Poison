@@ -1,5 +1,8 @@
 # Vis-Poison: Poisoning Visual Knowledge in Multimodal Retrieval-Augmented Generation
 
+[![arXiv](https://img.shields.io/badge/arXiv-2608.20756-b31b1b.svg)](https://arxiv.org/abs/2608.20756)
+[![Hugging Face Dataset](https://img.shields.io/badge/🤗%20Dataset-Vis--Poison-yellow)](https://huggingface.co/datasets/liangrujin/Vis-Poison)
+
 Official implementation and data resources for our **Findings of EMNLP 2026** paper ([arXiv](https://arxiv.org/abs/2608.20756)).
 
 ## Repository Structure
